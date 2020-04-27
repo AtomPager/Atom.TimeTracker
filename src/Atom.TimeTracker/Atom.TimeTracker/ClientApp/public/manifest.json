@@ -1,6 +1,6 @@
 {
-  "short_name": "Atom.TimeTracker",
-  "name": "Atom.TimeTracker",
+  "short_name": "Atom Time Tracker",
+  "name": "Atom Time Tracker",
   "icons": [
     {
       "src": "favicon.ico",
