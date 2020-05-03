@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import moment from "moment";
 
 export class TimePeriodCreate extends Component {
     state = {
@@ -28,9 +29,13 @@ export class TimePeriodCreate extends Component {
     validate = () => {
         const timePeriodCreate = this.state.timePeriodCreate;
         const errors = {};
+        const startDate = null;
+        const endDate = null;
 
         if (!timePeriodCreate.startDate) errors.startDate = "No date set";
+        else startDate = moment(timePeriodCreate.startDate);
         if (!timePeriodCreate.endDate) errors.endDate = "No date set";
+        else endDate = moment(timePeriodCreate.endDate);
 
         return Object.keys(errors) === 0 ? null : errors;
     };
