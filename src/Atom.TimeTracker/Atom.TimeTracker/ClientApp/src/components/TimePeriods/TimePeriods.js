@@ -1,4 +1,5 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
+import axios from "axios";
 
 export class TimePeriods extends Component {
     static displayName = TimePeriods.name;
@@ -14,7 +15,7 @@ export class TimePeriods extends Component {
 
     static renderTable(timePeriods) {
         return (
-            <table className='table table-striped' aria-labelledby="tabelLabel">
+            <table className="table table-striped" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
                         <th>Start Date</th>
@@ -23,31 +24,39 @@ export class TimePeriods extends Component {
                     </tr>
                 </thead>
                 <tbody>
-                    {timePeriods.map(timePeriod =>
+                    {timePeriods.map((timePeriod) => (
                         <tr key={timePeriod.id}>
-                            <td>{timePeriod.PeriodStartDate}</td>
-                            <td>{timePeriod.PeriodEndDate}</td>
-                            <td>{timePeriod.WorkDays}</td>
+                            <td>{new Date(timePeriod.periodStartDate).toLocaleDateString()}</td>
+                            <td>{new Date(timePeriod.periodEndDate).toLocaleDateString()}</td>
+                            <td>{timePeriod.workDays}</td>
                         </tr>
-                    )}
+                    ))}
                 </tbody>
             </table>
         );
     }
 
     render() {
-        let contents = this.state.loading
-            ? <p><em>Loading...</em></p>
-            : TimePeriods.renderTable(this.state.timePeriods);
-
-        return (
-           <div>{contents}</div>
+        let contents = this.state.loading ? (
+            <p>
+                <em>Loading...</em>
+            </p>
+        ) : (
+            TimePeriods.renderTable(this.state.timePeriods)
         );
+
+        return <div>{contents}</div>;
     }
 
     async populateTimePeriodData() {
-        const response = await fetch('api/admin/TimePeriods');
-        const data = await response.json();
-        this.setState({ timePeriods: data, loading: false });
+        axios
+            .get("api/admin/TimePeriods")
+            .then((response) => {
+                const data = response.data;
+                this.setState({ timePeriods: data, loading: false });
+            })
+            .catch((e) => {
+                console.log(e);
+            });
     }
 }

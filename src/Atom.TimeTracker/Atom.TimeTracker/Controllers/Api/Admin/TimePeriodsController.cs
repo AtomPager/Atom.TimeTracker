@@ -28,6 +28,23 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
             return await _context.TimePeriod.AsNoTracking().OrderByDescending(t=>t.PeriodStartDate).ToListAsync();
         }
 
+        [HttpGet("SuggestTimes")]
+        public async Task<ActionResult<TimePeriodCreate>> GetSuggestedTimePeriod()
+        {
+            try
+            {
+                var currentLastPeriod = await _context.TimePeriod.AsNoTracking().MaxAsync(t => t.PeriodEndDate);
+                currentLastPeriod = currentLastPeriod.AddDays(1);
+                return new TimePeriodCreate { StartDate = currentLastPeriod, EndDate = currentLastPeriod.AddMonths(1).AddDays(-1) };
+            }
+            catch (InvalidOperationException e)
+            {
+                var now = DateTime.Now;
+                var som = new DateTime(now.Year, now.Month, 1);
+                return new TimePeriodCreate { StartDate = som, EndDate = som.AddMonths(1).AddDays(-1) };
+            }
+        }
+
         // GET: api/TimePeriods/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TimePeriod>> GetTimePeriod(int id)
@@ -63,7 +80,7 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
 
             var startDate = period.StartDate.Value.Date;
             var endDate = period.EndDate.Date;
-            if (startDate <= endDate)
+            if (startDate >= endDate)
                 return BadRequest("Start date must be before end date");
 
             if (await _context.TimePeriod.AnyAsync(OverlapPredicate(startDate, endDate)))
