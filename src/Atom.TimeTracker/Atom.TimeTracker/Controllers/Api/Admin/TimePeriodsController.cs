@@ -25,24 +25,26 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TimePeriod>>> GetTimePeriod()
         {
-            return await _context.TimePeriod.AsNoTracking().OrderByDescending(t=>t.PeriodStartDate).ToListAsync();
+            return await _context.TimePeriod.AsNoTracking().OrderByDescending(t => t.PeriodStartDate).ToListAsync();
         }
 
         [HttpGet("SuggestTimes")]
         public async Task<ActionResult<TimePeriodCreate>> GetSuggestedTimePeriod()
         {
+            var now = DateTime.Now;
+            var startOfPeriod = new DateTime(now.Year, now.Month, 1);
+
             try
             {
                 var currentLastPeriod = await _context.TimePeriod.AsNoTracking().MaxAsync(t => t.PeriodEndDate);
-                currentLastPeriod = currentLastPeriod.AddDays(1);
-                return new TimePeriodCreate { StartDate = currentLastPeriod, EndDate = currentLastPeriod.AddMonths(1).AddDays(-1) };
+                startOfPeriod = currentLastPeriod.AddDays(1); // end dates are inclusive, so we want to start on the next day.
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
-                var now = DateTime.Now;
-                var som = new DateTime(now.Year, now.Month, 1);
-                return new TimePeriodCreate { StartDate = som, EndDate = som.AddMonths(1).AddDays(-1) };
             }
+
+            var periodEnd = startOfPeriod.AddMonths(1).AddDays(-1); // TODO; make the default period duration configurable
+            return new TimePeriodCreate { StartDate = startOfPeriod, EndDate = periodEnd };
         }
 
         // GET: api/TimePeriods/5
@@ -69,7 +71,7 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
             if (!period.StartDate.HasValue)
             {
                 var lastEndDate = await _context.TimePeriod.MaxAsync(t => t.PeriodEndDate);
-                
+
                 // Don't auto fill start date if it would create a period over longer then 3 months.
                 if (lastEndDate.AddMonths(-3) < period.EndDate)
                     return BadRequest("Unable to auto fill start date");
@@ -88,10 +90,15 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
                 return Conflict("Overlapping time period found");
             }
 
+            // TODO: Update work days to remove weekends
+            // TODO: Add holiday schedule to taken into account for work days.
+            var workDays = (int)(endDate - startDate).TotalDays;
+
             var timePeriod = new TimePeriod
             {
                 PeriodEndDate = endDate,
-                PeriodStartDate = startDate
+                PeriodStartDate = startDate,
+                WorkDays = workDays
             };
 
             await _context.TimePeriod.AddAsync(timePeriod);
