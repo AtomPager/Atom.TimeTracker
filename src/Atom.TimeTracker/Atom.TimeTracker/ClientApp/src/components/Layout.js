@@ -12,6 +12,12 @@ export class Layout extends Component {
         <Container>
           {this.props.children}
         </Container>
+
+        <footer className="border-top footer text-muted">
+          <div className="container">
+          Powered by <a className="badge badge-light" href="https://github.com/AtomPager/Atom.TimeTracker">Atom Time Tracker</a>
+          </div>
+        </footer>
       </div>
     );
   }
