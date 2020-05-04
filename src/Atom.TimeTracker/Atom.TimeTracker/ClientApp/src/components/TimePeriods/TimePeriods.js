@@ -1,62 +1,43 @@
-import React, { Component } from "react";
-import axios from "axios";
+import React, { Component } from 'react';
+import { Switch, Route, Link } from 'react-router-dom';
+import { TimePeriodIndex } from './TimePeriodIndex';
+import { TimePeriodCreate } from './TimePeriodCreate';
+import { TimePeriodDetails } from './TimePeriodDetails';
 
 export class TimePeriods extends Component {
-    static displayName = TimePeriods.name;
-
-    constructor(props) {
-        super(props);
-        this.state = { timePeriods: [], loading: true };
-    }
-
-    componentDidMount() {
-        this.populateTimePeriodData();
-    }
-
-    static renderTable(timePeriods) {
-        return (
-            <table className="table table-striped" aria-labelledby="tabelLabel">
-                <thead>
-                    <tr>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Work Days</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {timePeriods.map((timePeriod) => (
-                        <tr key={timePeriod.id}>
-                            <td>{new Date(timePeriod.periodStartDate).toLocaleDateString()}</td>
-                            <td>{new Date(timePeriod.periodEndDate).toLocaleDateString()}</td>
-                            <td>{timePeriod.workDays}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        );
-    }
-
     render() {
-        let contents = this.state.loading ? (
-            <p>
-                <em>Loading...</em>
-            </p>
-        ) : (
-            TimePeriods.renderTable(this.state.timePeriods)
+        return (
+            <div>
+                <h1 id="tabelLabel">
+                    Time Periods
+                    <span className="float-right">
+                        <Switch>
+                            <Route
+                                path="/time-periods"
+                                exact
+                                render={() => (
+                                    <Link to="/time-periods/create" className="btn btn-primary btn-sm">
+                                        Create
+                                    </Link>
+                                )}
+                            />
+                            <Route
+                                path="/time-periods"
+                                render={() => (
+                                    <Link to="/time-periods" className="btn btn-outline-secondary btn-sm">
+                                        close
+                                    </Link>
+                                )}
+                            />
+                        </Switch>
+                    </span>
+                </h1>
+                <Switch>
+                    <Route path="/time-periods/create" component={TimePeriodCreate} />
+                    <Route path="/time-periods/:timePeriodId" component={TimePeriodDetails} />
+                    <Route path="/time-periods" component={TimePeriodIndex} />
+                </Switch>
+            </div>
         );
-
-        return <div>{contents}</div>;
-    }
-
-    async populateTimePeriodData() {
-        axios
-            .get("api/admin/TimePeriods")
-            .then((response) => {
-                const data = response.data;
-                this.setState({ timePeriods: data, loading: false });
-            })
-            .catch((e) => {
-                console.log(e);
-            });
     }
 }

@@ -4,14 +4,16 @@ using Atom.TimeTracker.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Atom.TimeTracker.Migrations
 {
     [DbContext(typeof(TimeSheetContext))]
-    partial class TimeSheetContextModelSnapshot : ModelSnapshot
+    [Migration("20200503132016_FixTableNamingInconsistencies")]
+    partial class FixTableNamingInconsistencies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,7 +40,7 @@ namespace Atom.TimeTracker.Migrations
 
                     b.Property<DateTime>("StartDate")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("DATE")
+                        .HasColumnType("datetime2")
                         .HasDefaultValueSql("GetUtcDate()");
 
                     b.Property<string>("UserName")
@@ -88,10 +90,10 @@ namespace Atom.TimeTracker.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("PeriodEndDate")
-                        .HasColumnType("DATE");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("PeriodStartDate")
-                        .HasColumnType("DATE");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("WorkDays")
                         .HasColumnType("int");
@@ -111,8 +113,8 @@ namespace Atom.TimeTracker.Migrations
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("SubmittedDateTime")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateTime?>("SubmittedDateTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TimePeriodId")
                         .HasColumnType("int");

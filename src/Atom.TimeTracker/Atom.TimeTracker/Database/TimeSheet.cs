@@ -13,6 +13,6 @@ namespace Atom.TimeTracker.Database
         /// <summary>
         /// Represent the date and time this time sheet was submitted, if value is null, then it hasn't been submitted yet.
         /// </summary>
-        public DateTime? SubmittedDateTime { get; set; }
+        public DateTimeOffset? SubmittedDateTime { get; set; }
     }
 }

@@ -21,11 +21,11 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
             _context = context;
         }
 
-        // GET: api/TimePeriods
+        // GET: api/admin/TimePeriods
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TimePeriod>>> GetTimePeriod()
+        public async Task<ActionResult<IEnumerable<TimePeriodSummary>>> GetTimePeriod()
         {
-            return await _context.TimePeriod.AsNoTracking().OrderByDescending(t => t.PeriodStartDate).ToListAsync();
+            return await _context.TimePeriodSummary.AsNoTracking().OrderByDescending(t => t.PeriodStartDate).ToListAsync();
         }
 
         [HttpGet("SuggestTimes")]
@@ -36,7 +36,7 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
 
             try
             {
-                var currentLastPeriod = await _context.TimePeriod.AsNoTracking().MaxAsync(t => t.PeriodEndDate);
+                var currentLastPeriod = await _context.TimePeriods.AsNoTracking().MaxAsync(t => t.PeriodEndDate);
                 startOfPeriod = currentLastPeriod.AddDays(1); // end dates are inclusive, so we want to start on the next day.
             }
             catch (InvalidOperationException)
@@ -47,30 +47,32 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
             return new TimePeriodCreate { StartDate = startOfPeriod, EndDate = periodEnd };
         }
 
-        // GET: api/TimePeriods/5
+        // GET: api/admin/TimePeriods/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TimePeriod>> GetTimePeriod(int id)
+        public async Task<ActionResult<TimePeriodDetails>> GetTimePeriod(int id)
         {
-            var timePeriod = await _context.TimePeriod.AsNoTracking()
-                .Include(p => p.TimeSheets)
-                .Include(p => p.TimeSheets.First().Person)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
+            var timePeriod = await _context.TimePeriods.AsNoTracking().SingleOrDefaultAsync(t => t.Id == id);
             if (timePeriod == null)
             {
                 return NotFound();
             }
 
-            return timePeriod;
+            var persons = await _context.GetPersonsTimeSheets(id).ToListAsync();
+
+            return new TimePeriodDetails
+            {
+                TimePeriod = timePeriod,
+                Persons = persons
+            };
         }
 
-        // POST: api/TimePeriods
+        // POST: api/admin/TimePeriods
         [HttpPost]
         public async Task<ActionResult<TimePeriod>> PostTimePeriod(TimePeriodCreate period)
         {
             if (!period.StartDate.HasValue)
             {
-                var lastEndDate = await _context.TimePeriod.MaxAsync(t => t.PeriodEndDate);
+                var lastEndDate = await _context.TimePeriods.MaxAsync(t => t.PeriodEndDate);
 
                 // Don't auto fill start date if it would create a period over longer then 3 months.
                 if (lastEndDate.AddMonths(-3) < period.EndDate)
@@ -85,7 +87,7 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
             if (startDate >= endDate)
                 return BadRequest("Start date must be before end date");
 
-            if (await _context.TimePeriod.AnyAsync(OverlapPredicate(startDate, endDate)))
+            if (await _context.TimePeriods.AnyAsync(OverlapPredicate(startDate, endDate)))
             {
                 return Conflict("Overlapping time period found");
             }
@@ -101,10 +103,26 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
                 WorkDays = workDays
             };
 
-            await _context.TimePeriod.AddAsync(timePeriod);
+            await _context.TimePeriods.AddAsync(timePeriod);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetTimePeriod", new { id = timePeriod.Id }, timePeriod);
+        }
+
+        // DELETE: api/admin/TimePeriods/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<TimePeriod>> DeleteTimePeriod(int id)
+        {
+            var timePeriod = await _context.TimePeriods.FindAsync(id);
+            if (timePeriod == null)
+            {
+                return NotFound();
+            }
+
+            _context.TimePeriods.Remove(timePeriod);
+            await _context.SaveChangesAsync();
+
+            return timePeriod;
         }
 
         public static Expression<Func<TimePeriod, bool>> OverlapPredicate(DateTime startDate, DateTime endDate)
@@ -114,22 +132,6 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
                 || (t.PeriodStartDate <= startDate && t.PeriodEndDate >= startDate)  // we start before an existing time sheet ends
                 || (t.PeriodStartDate <= endDate && t.PeriodEndDate >= endDate)
                 || (t.PeriodStartDate >= startDate && t.PeriodEndDate <= endDate);
-        }
-
-        // DELETE: api/TimePeriods/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<TimePeriod>> DeleteTimePeriod(int id)
-        {
-            var timePeriod = await _context.TimePeriod.FindAsync(id);
-            if (timePeriod == null)
-            {
-                return NotFound();
-            }
-
-            _context.TimePeriod.Remove(timePeriod);
-            await _context.SaveChangesAsync();
-
-            return timePeriod;
         }
 
         public class TimePeriodCreate
@@ -143,6 +145,12 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
             /// End date of Period, inclusive
             /// </summary>
             public DateTime EndDate { get; set; }
+        }
+
+        public class TimePeriodDetails
+        {
+            public TimePeriod TimePeriod { get; set; }
+            public List<PersonsTimeSheets> Persons { get; set; }
         }
     }
 }

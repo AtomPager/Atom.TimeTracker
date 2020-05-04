@@ -44,7 +44,7 @@ namespace Atom.TimeTracker.Controllers.Api
         [HttpGet("MissingTimePeriods")]
         public async Task<ActionResult<IEnumerable<TimePeriod>>> GetMissingTimePeriods()
         {
-            return await _context.TimePeriod.AsNoTracking()
+            return await _context.TimePeriods.AsNoTracking()
                 .Where(p => p.TimeSheets.All(t => t.Person.UserName != UserName))
                 .ToListAsync();
         }
@@ -53,7 +53,7 @@ namespace Atom.TimeTracker.Controllers.Api
         public async Task<ActionResult<TimeSheet>> Create(TimeSheetCreate create)
         {
             var user = UserName;
-            var timePeriod = await _context.TimePeriod.AsNoTracking()
+            var timePeriod = await _context.TimePeriods.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == create.TimePeriodId);
 
             if (timePeriod == null)

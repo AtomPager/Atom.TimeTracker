@@ -32,6 +32,16 @@
     <Compile Remove="Migrations\20200426193229_Create DB.Designer.cs" />
     <Compile Remove="Migrations\20200426193815_Create DB.cs" />
     <Compile Remove="Migrations\20200426193815_Create DB.Designer.cs" />
+    <Compile Remove="Migrations\20200503130304_sp-GetPersonsTimeSheets.cs" />
+    <Compile Remove="Migrations\20200503130304_sp-GetPersonsTimeSheets.Designer.cs" />
+    <Compile Remove="Migrations\20200503142152_test.cs" />
+    <Compile Remove="Migrations\20200503142152_test.Designer.cs" />
+    <Compile Remove="Migrations\20200503142840_test.cs" />
+    <Compile Remove="Migrations\20200503142840_test.Designer.cs" />
+    <Compile Remove="Migrations\20200503204123_ChangeTimePeriodDateType.cs" />
+    <Compile Remove="Migrations\20200503204123_ChangeTimePeriodDateType.Designer.cs" />
+    <Compile Remove="Migrations\20200503204524_vw_TimePeriodSummay.cs" />
+    <Compile Remove="Migrations\20200503204524_vw_TimePeriodSummay.Designer.cs" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
