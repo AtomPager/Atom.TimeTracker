@@ -57,7 +57,7 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
                 return NotFound();
             }
 
-            var persons = await _context.GetPersonsTimeSheets(id).ToListAsync();
+            var persons = await _context.PersonTimeSheets.Where(d => d.TimePeriodId == id && d.IsActive).ToListAsync();
 
             return new TimePeriodDetails
             {
@@ -150,7 +150,7 @@ namespace Atom.TimeTracker.Controllers.Api.Admin
         public class TimePeriodDetails
         {
             public TimePeriod TimePeriod { get; set; }
-            public List<PersonsTimeSheets> Persons { get; set; }
+            public List<PersonTimeSheets> Persons { get; set; }
         }
     }
 }

@@ -20,33 +20,37 @@ namespace Atom.TimeTracker.Controllers.Api
         }
 
         [HttpGet]
-        public async Task<IEnumerable<TimeSheet>> GetTimeSheet()
+        public async Task<IEnumerable<PersonTimeSheets>> GetTimeSheet(bool showAll = false)
         {
-            return await _context.TimeSheets.AsNoTracking()
-                .Include(t => t.TimePeriod)
-                .Where(t => t.Person.UserName == UserName)
-                .OrderBy(t => t.TimePeriod.PeriodStartDate)
+            var query = _context.PersonTimeSheets.AsNoTracking()
+                .Where(p => p.UserName == UserName);
+
+            if (!showAll)
+            {
+                query = query.Where(p =>
+                    p.PeriodStartDate < DateTime.UtcNow.AddDays(20) &&
+                    (p.PeriodEndDate > DateTime.UtcNow.AddMonths(-6) || p.SubmittedDateTime == null));
+            }
+            
+            return await query
+                .OrderByDescending(p => p.PeriodEndDate)
                 .ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TimeSheet>> GetTimeSheet(int id)
         {
-            var timeSheet = await _context.TimeSheets.AsNoTracking()
+            var timeSheet = await _context.TimeSheets
+                .AsNoTracking()
                 .Include(t => t.TimePeriod)
                 .Include(t => t.Entries)
                 .FirstOrDefaultAsync(t => t.Person.UserName == UserName && t.Id == id);
+            
             if (timeSheet == null)
                 return NotFound();
-            return Ok(timeSheet);
-        }
 
-        [HttpGet("MissingTimePeriods")]
-        public async Task<ActionResult<IEnumerable<TimePeriod>>> GetMissingTimePeriods()
-        {
-            return await _context.TimePeriods.AsNoTracking()
-                .Where(p => p.TimeSheets.All(t => t.Person.UserName != UserName))
-                .ToListAsync();
+            timeSheet.TimePeriod.TimeSheets = null;
+            return Ok(timeSheet);
         }
 
         [HttpPost]
@@ -58,27 +62,24 @@ namespace Atom.TimeTracker.Controllers.Api
 
             if (timePeriod == null)
                 return BadRequest("Time Period specified was not found");
-            
-            var person = await _context.Persons.FirstOrDefaultAsync(p => p.UserName == user);
+
+            var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user && p.IsActive);
             if (person == null)
             {
-                person = new Person { UserName = user };
-                await _context.Persons.AddAsync(person);
-                await _context.SaveChangesAsync();
+                return BadRequest("Need to be an active user to create time sheets");
             }
 
             var timeSheet = await _context.TimeSheets
                 .AsNoTracking()
-                .Include(t => t.TimePeriod)
-                .Include(t => t.Entries)
-                .FirstOrDefaultAsync(t => t.Person.UserName == user && t.TimePeriod == timePeriod);
+                .FirstOrDefaultAsync(t => t.Person.UserName == user && t.TimePeriodId == timePeriod.Id);
 
+            // If the time sheet for the period doesn't already exist, then create it.
             if (timeSheet == null)
             {
                 timeSheet = new TimeSheet
                 {
-                    Person = person,
-                    TimePeriod = timePeriod
+                    PersonId = person.Id,
+                    TimePeriodId = timePeriod.Id
                 };
 
                 await _context.TimeSheets.AddAsync(timeSheet);
@@ -98,7 +99,7 @@ namespace Atom.TimeTracker.Controllers.Api
             get
             {
                 var name = User?.Identity?.Name ?? "TestUser"; // TODO: Remove once Auth is added.
-                if(string.IsNullOrEmpty(name))
+                if (string.IsNullOrEmpty(name))
                     throw new ApplicationException("No user defined");
                 return name;
             }

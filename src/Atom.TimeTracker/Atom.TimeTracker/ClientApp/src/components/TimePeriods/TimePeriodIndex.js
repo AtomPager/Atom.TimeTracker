@@ -41,7 +41,7 @@ export class TimePeriodIndex extends Component {
 
     static renderTable(timePeriods) {
         return (
-            <table className="table table-striped table-responsive-sm" aria-labelledby="tabelLabel">
+            <table className="table table-sm table-striped" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
                         <th></th>

@@ -28,15 +28,17 @@ namespace Atom.TimeTracker.Database
         public DbSet<Person> Persons { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<TimePeriodSummary> TimePeriodSummary { get; set; }
+        public DbSet<PersonTimeSheets> PersonTimeSheets { get; set; }
 
-        public IQueryable<PersonsTimeSheets> GetPersonsTimeSheets(int timePeriodId)
-        {
-            return this.Set<PersonsTimeSheets>().FromSqlRaw(SqlGetPersonsTimeSheet, new SqlParameter("@timePeriodId", timePeriodId)).AsNoTracking();
-        }
+        //public IQueryable<PersonsTimeSheets> GetPersonsTimeSheets(int timePeriodId)
+        //{
+        //    return this.Set<PersonsTimeSheets>().FromSqlRaw(SqlGetPersonsTimeSheet, new SqlParameter("@timePeriodId", timePeriodId)).AsNoTracking();
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<PersonsTimeSheets>().HasNoKey().ToView(null);
+            //modelBuilder.Entity<PersonsTimeSheets>().HasNoKey().ToView(null);
+            modelBuilder.Entity<PersonTimeSheets>().HasNoKey().ToView("vw_PersonTimeSheets");
 
             modelBuilder.Entity<TimePeriodSummary>().HasNoKey().ToView("vw_TimePeriodSummary");
 

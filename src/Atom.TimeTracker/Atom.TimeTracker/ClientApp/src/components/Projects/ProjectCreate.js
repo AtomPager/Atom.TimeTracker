@@ -31,7 +31,7 @@ export class ProjectCreate extends Component {
                     // that falls out of the range of 2xx
                     console.log(error.response.data);
                     console.log(error.response.status);
-                    const errorMsg = error.response.data.title || error.response.data;
+                    const errorMsg = error.response.data.title || error.response.data || 'Error loading data';
                     console.log(errorMsg);
                     this.setState({ errorMsg, loading: false });
                 } else if (error.request) {

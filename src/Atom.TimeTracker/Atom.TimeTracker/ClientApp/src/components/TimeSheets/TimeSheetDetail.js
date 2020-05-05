@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import Joi from 'joi-browser';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 
-export class TimePeriodDetails extends Component {
-    state = { timePeriod: null, persons: null, timePeriodId: null, loading: true, errorMsg: null };
+export class TimeSheetDetail extends Component {
+    state = { loading: true, timeSheetId: null, timeSheet: null, errorMsg: null };
 
     schema = {
-        timePeriodId: Joi.number().integer().min(1),
+        timeSheetId: Joi.number().integer().min(1),
     };
 
     componentDidMount() {
@@ -18,15 +17,15 @@ export class TimePeriodDetails extends Component {
             return;
         }
 
-        const { timePeriodId } = this.props.match.params;
+        const { timeSheetId } = this.props.match.params;
 
-        this.setState({ timePeriodId });
+        this.setState({ timeSheetId });
         axios
-            .get(`api/admin/TimePeriods/${timePeriodId}`)
+            .get(`api/TimeSheet/${timeSheetId}`)
             .then((r) => {
                 console.log(r.data);
-                const { timePeriod, persons } = r.data;
-                this.setState({ timePeriod, persons, loading: false });
+                const timeSheet = r.data;
+                this.setState({ timeSheet, loading: false });
             })
             .catch((error) => {
                 if (error.response) {
@@ -51,37 +50,54 @@ export class TimePeriodDetails extends Component {
             });
     }
 
-    static renderTableRow(person) {
-        const viewUrl = `/time-periods/${person.id}`;
-        return (
-            <tr key={person.id}>
-                <td>{person.timeSheetId && <Link to={viewUrl}>View</Link>}</td>
-                <td>{person.name}</td>
-                <td>{person.timeSheetId ? '✔️' : '❌'}</td>
-                <td>{person.submittedDateTime ? '✔️' : '❌'}</td>
-                <td>{person.submittedDateTime && new Date(person.submittedDateTime).toLocaleDateString()}</td>
+    renderEntityTable = () => {
+        const { entries, timePeriod } = this.state.timeSheet;
+        const newRow = !timePeriod.submittedDateTime && (
+            <tr>
+                <td>
+                    <button className="btn btn-sm btn-success">Save</button>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
         );
-    }
 
-    static renderTable(persons) {
         return (
             <table className="table table-striped" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
                         <th></th>
-                        <th>Name</th>
-                        <th>Created</th>
-                        <th>Submitted</th>
-                        <th>Submitted Date</th>
+                        <th>Project</th>
+                        <th>Node</th>
+                        <th>Parts</th>
+                        <th>% of Period</th>
                     </tr>
                 </thead>
-                <tbody>{persons.map((person) => TimePeriodDetails.renderTableRow(person))}</tbody>
+                <tbody>
+                    {entries.map((entry) => this.renderEntityRow(entry))}
+                    {newRow && newRow}
+                </tbody>
             </table>
         );
-    }
+    };
 
-    static renderHeading(timePeriod) {
+    renderEntityRow = (entry) => {
+        return (
+            <tr key={entry.id}>
+                <td></td>
+                <td>{entry.project.name}</td>
+                <td>{entry.note}</td>
+                <td>{entry.value}</td>
+                <td></td>
+            </tr>
+        );
+    };
+
+    static renderHeading({ timePeriod, submittedDateTime }) {
+        var subDate = submittedDateTime && new Date(submittedDateTime).toLocaleDateString();
+
         return (
             <ul>
                 <li>
@@ -91,6 +107,10 @@ export class TimePeriodDetails extends Component {
                 <li>
                     <strong>Work days: </strong>
                     {timePeriod.workDays}
+                </li>
+                <li>
+                    <strong>Status: </strong>
+                    {submittedDateTime ? `Submitted on ${subDate}` : 'Pending'}
                 </li>
             </ul>
         );
@@ -105,9 +125,10 @@ export class TimePeriodDetails extends Component {
             <div className="alert alert-danger">{this.state.errorMsg}</div>
         ) : (
             <div>
-                {TimePeriodDetails.renderHeading(this.state.timePeriod)}
-                <h3>Time Sheets</h3>
-                {TimePeriodDetails.renderTable(this.state.persons)}
+                {TimeSheetDetail.renderHeading(this.state.timeSheet)}
+                <hr />
+                <h3>Entries</h3>
+                {this.renderEntityTable()}
             </div>
         );
 

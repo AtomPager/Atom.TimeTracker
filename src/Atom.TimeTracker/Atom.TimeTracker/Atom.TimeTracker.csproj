@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\WeatherForecastController.cs" />
     <Compile Remove="Migrations\20200426193229_Create DB.cs" />
     <Compile Remove="Migrations\20200426193229_Create DB.Designer.cs" />
     <Compile Remove="Migrations\20200426193815_Create DB.cs" />
@@ -42,6 +43,7 @@
     <Compile Remove="Migrations\20200503204123_ChangeTimePeriodDateType.Designer.cs" />
     <Compile Remove="Migrations\20200503204524_vw_TimePeriodSummay.cs" />
     <Compile Remove="Migrations\20200503204524_vw_TimePeriodSummay.Designer.cs" />
+    <Compile Remove="WeatherForecast.cs" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
