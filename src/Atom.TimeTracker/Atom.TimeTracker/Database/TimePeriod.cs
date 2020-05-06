@@ -1,8 +1,6 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Atom.TimeTracker.Database
 {
@@ -16,6 +14,6 @@ namespace Atom.TimeTracker.Database
         /// </summary>
         public DateTime PeriodEndDate { get; set; }
         public int WorkDays { get; set; }
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)] public List<TimeSheet> TimeSheets { get; set; }
+        [JsonIgnore] public List<TimeSheet> TimeSheets { get; set; }
     }
 }

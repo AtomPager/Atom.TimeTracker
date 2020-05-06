@@ -31,7 +31,7 @@ namespace Atom.TimeTracker.Controllers.Api
                     p.PeriodStartDate < DateTime.UtcNow.AddDays(20) &&
                     (p.PeriodEndDate > DateTime.UtcNow.AddMonths(-6) || p.SubmittedDateTime == null));
             }
-            
+
             return await query
                 .OrderByDescending(p => p.PeriodEndDate)
                 .ToListAsync();
@@ -44,12 +44,12 @@ namespace Atom.TimeTracker.Controllers.Api
                 .AsNoTracking()
                 .Include(t => t.TimePeriod)
                 .Include(t => t.Entries)
+                .ThenInclude(t=>t.Project)
                 .FirstOrDefaultAsync(t => t.Person.UserName == UserName && t.Id == id);
-            
+
             if (timeSheet == null)
                 return NotFound();
 
-            timeSheet.TimePeriod.TimeSheets = null;
             return Ok(timeSheet);
         }
 

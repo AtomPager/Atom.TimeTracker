@@ -85,7 +85,11 @@ export class TimeSheetIndexTableRow extends Component {
                 <td className="d-none d-md-block">{startDate.toLocaleDateString()}</td>
                 <td>{new Date(timeSheet.periodEndDate).toLocaleDateString()}</td>
                 <td>{timeSheet.dueInDays}</td>
-                <td>{statusIcon}</td>
+                <td>
+                    <span role="img" aria-label={status}>
+                        {statusIcon}
+                    </span>
+                </td>
                 <td>{timeSheet.submittedDateTime && new Date(timeSheet.submittedDateTime).toLocaleDateString()}</td>
             </tr>
         );

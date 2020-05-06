@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Atom.TimeTracker.Database
 {
@@ -9,7 +9,7 @@ namespace Atom.TimeTracker.Database
         public int Id { get; set; }
         public string UserName { get; set; }
         public string Name { get; set; }
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)] public List<TimeSheet> TimeSheets { get; set; }
+        [JsonIgnore] public List<TimeSheet> TimeSheets { get; set; }
 
         /// <summary>
         /// Indicates this person is an Administrator of the time sheet system and has extra roles the can perform.

@@ -29,7 +29,12 @@ namespace Atom.TimeTracker
             services.AddAntiforgery(options => { options.HeaderName = "X-XSRF-TOKEN";});
             services.AddControllersWithViews();
 
-            services.AddMvc(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+            services.AddMvc(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()))
+                .AddJsonOptions(
+                options =>
+                {
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                }); ;
            
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
