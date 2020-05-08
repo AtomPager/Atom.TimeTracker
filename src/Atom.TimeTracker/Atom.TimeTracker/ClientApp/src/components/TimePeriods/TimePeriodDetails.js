@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Joi from 'joi-browser';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+//import { Link } from 'react-router-dom';
 
 export class TimePeriodDetails extends Component {
     state = { timePeriod: null, persons: null, timePeriodId: null, loading: true, errorMsg: null };
@@ -52,7 +52,7 @@ export class TimePeriodDetails extends Component {
     }
 
     static renderTableRow(person) {
-        const viewUrl = `/time-periods/${person.id}`;
+        // const viewUrl = `/time-periods/${person.id}`;
         return (
             <tr key={person.id}>
                 {/* <td>{person.timeSheetId && <Link to={viewUrl}>{person.name}</Link>}</td> */}

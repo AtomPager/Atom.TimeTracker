@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import Joi from 'joi-browser';
 import axios from 'axios';
 import debounce from 'lodash.debounce';
-//import { DebounceInput } from 'react-debounce-input';
-import AsyncCreatableSelect from 'react-select/async-creatable';
+import Modal from 'react-modal';
+import CreatableSelect from 'react-select/async-creatable';
 
 export class TimeSheetDetail extends Component {
     state = {
@@ -15,6 +15,7 @@ export class TimeSheetDetail extends Component {
         errorMsg: undefined,
         saving: false,
         hasChanged: false,
+        projects: [],
     };
 
     schema = {
@@ -54,23 +55,32 @@ export class TimeSheetDetail extends Component {
                         note: e.note,
                         percentOfPeriod: e.percentOfPeriod,
                         value: e.value,
-                        projectId: e.project.id,
-                        projectName: e.project.name,
+                        project: { ...e.project },
                     };
                 });
                 this.setState({ submittedDateTime: timeSheet.submittedDateTime, entries, timePeriod: timeSheet.timePeriod, loading: false });
             })
             .catch((error) => {
                 if (error.response) {
-                    console.log(error.response.status);
+                    console.error(error.response.status);
                     const errorMsg = error.response.data.title || error.response.data || 'Error loading data';
                     this.setState({ errorMsg, loading: false });
                 } else if (error.request) {
                     this.setState({ errorMsg: 'Timeout', loading: false });
                 } else {
-                    console.log('Error', error.message);
+                    console.error('Error', error.message);
                     this.setState({ errorMsg: error.message, loading: false });
                 }
+            });
+
+        axios
+            .get('api/projects')
+            .then((res) => {
+                console.log(res);
+                this.setState({ projects: res.data });
+            })
+            .catch((error) => {
+                console.error('Error getting projects', error);
             });
     }
 
@@ -112,15 +122,30 @@ export class TimeSheetDetail extends Component {
         let newValue = { ...entry };
 
         newValue[e.name] = e.value;
-
         entries[index] = newValue;
+
+        if (e.name === 'value') {
+            // Need to re-calculate the percentOfPeriod
+            let sumOfValues = 0;
+            entries.forEach((e) => {
+                sumOfValues += Number(e.value);
+            });
+
+            console.log('sum of values is:', sumOfValues);
+            entries = entries.map((e) => {
+                let ec = { ...e };
+                ec.percentOfPeriod = ec.value / sumOfValues;
+                return ec;
+            });
+        }
+
         this.setState({ entries, hasChanged: true });
     };
 
     handleEntryCreate = () => {
         let entries = [...this.state.entries];
 
-        entries.push({ key: TimeSheetDetail.uuidv4(), id: null, note: undefined, value: 0, percentOfPeriod: 0, projectId: undefined, projectName: undefined });
+        entries.push({ key: TimeSheetDetail.uuidv4(), id: null, note: undefined, value: 0, percentOfPeriod: 0, project: {} });
         this.setState({ entries, hasChanged: true });
     };
 
@@ -135,12 +160,11 @@ export class TimeSheetDetail extends Component {
 
     renderEntityTable = () => {
         const { entries, submittedDateTime } = this.state;
-
         return (
             <table className="table table-sm table-striped" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
-                        <th>Project</th>
+                        <th style={{ minWidth: '150px' }}>Project</th>
                         <th>Note</th>
                         <th>Parts</th>
                         <th>%</th>
@@ -153,7 +177,7 @@ export class TimeSheetDetail extends Component {
     };
 
     renderEntityEditRow = (entry) => {
-        return <TimeSheetDetailNewEntry key={entry.key} entry={entry} onDelete={this.handleEntryDelete} onChange={this.handleEntryChange} />;
+        return <TimeSheetDetailNewEntry projects={this.state.projects} key={entry.key} entry={entry} onDelete={this.handleEntryDelete} onChange={this.handleEntryChange} />;
     };
 
     renderEntityRow = (entry) => {
@@ -234,64 +258,111 @@ export class TimeSheetDetail extends Component {
 
 export class TimeSheetDetailNewEntry extends Component {
     state = {
-        projects: [],
+        projects: undefined,
+        notesIsOpen: false,
+        isLoading: false,
     };
 
     handleProjectLoadOptions = debounce((inputValue, callback) => {
         console.log('options', inputValue);
+
+        if (!inputValue) {
+            this.setState({ projects: null });
+            return;
+        }
+
+        this.setState({ isLoading: true });
         const searchTerm = inputValue.trim();
-        const url = 'api/projects';
         this.props.onChange({ name: 'projectName', value: searchTerm }, this.props.entry);
 
         axios
-            .get(url, {
+            .get('api/projects', {
                 params: { searchTerm },
             })
             .then((res) => {
                 console.log(res);
-                callback(res.data.map((p) => ({ value: p.id, label: p.name })));
+                callback(res.data);
             })
             .catch((error) => {
                 console.log(error);
-                callback([]);
+                callback(null);
             });
-    }, 500);
+    }, 600);
 
-    handleProjectChange = (e) => {
-        console.log('change', e);
+    handleProjectChange = (e, a) => {
+        console.log('change', e, a);
+        this.props.onChange({ name: 'project', value: e }, this.props.entry);
     };
 
     handleProjectCreate = (e) => {
         console.log('Create', e);
+
+        axios
+            .post('api/projects', {
+                name: e,
+            })
+            .then((res) => {
+                console.log('Created project', res);
+                this.props.onChange({ name: 'project', value: res.data }, this.props.entry);
+            })
+            .catch((error) => {
+                console.log('Error creating Project', error);
+            });
     };
 
     handlePieceSearchClick = (e, item) => {
         e.preventDefault();
         this.setState({ project: item, showProjectList: false });
-        this.props.onChange({ name: 'projectId', value: item.id }, this.props.entry);
-        this.props.onChange({ name: 'projectName', value: item.name }, this.props.entry);
+        this.props.onChange({ name: 'project', value: item }, this.props.entry);
     };
 
     render() {
+        const noteStyle = {
+            height: '75%',
+        };
+
+        // See : https://react-select.com/creatable
         return (
             <tr>
                 <td>
-                    <AsyncCreatableSelect
+                    <CreatableSelect
                         autoFocus
                         cacheOptions
                         onCreateOption={this.handleProjectCreate}
                         onChange={this.handleProjectChange}
                         loadOptions={this.handleProjectLoadOptions}
-                        defaultOptions
+                        defaultOptions={this.props.projects}
+                        getOptionLabel={(o) => o.name}
+                        getOptionValue={(o) => o.id}
+                        getNewOptionData={(i, o) => ({
+                            name: `Create "${i}"`,
+                        })}
+                        value={this.props.entry.project}
                     />
                 </td>
                 <td>
-                    <textarea
-                        name="note"
-                        onChange={(e) => this.props.onChange(e.currentTarget, this.props.entry)}
-                        value={this.props.entry.note}
-                        className="form-control form-control-sm"
-                    ></textarea>
+                    <button className="btn" onClick={(e) => this.setState({ notesIsOpen: true })}>
+                        <span aria-label="view note" role="img">
+                            📓
+                        </span>
+                    </button>
+                    <Modal isOpen={this.state.notesIsOpen} ariaHideApp={false}>
+                        <h3>
+                            Notes:
+                            <span className="float-right">
+                                <button className="btn" onClick={(e) => this.setState({ notesIsOpen: false })}>
+                                    X
+                                </button>
+                            </span>
+                        </h3>
+                        <textarea
+                            style={noteStyle}
+                            name="note"
+                            onChange={(e) => this.props.onChange(e.currentTarget, this.props.entry)}
+                            value={this.props.entry.note}
+                            className="form-control form-control-sm"
+                        ></textarea>
+                    </Modal>
                 </td>
                 <td>
                     <input
@@ -302,7 +373,7 @@ export class TimeSheetDetailNewEntry extends Component {
                         className="partsInput form-control form-control-sm"
                     ></input>
                 </td>
-                <td>{this.props.entry.percentOfPeriod}</td>
+                <td>{(this.props.entry.percentOfPeriod * 100).toFixed(1)}</td>
                 <td>
                     <button className="btn btn-sm" onClick={() => this.props.onDelete(this.props.entry)}>
                         <span role="img" aria-label="Delete">
