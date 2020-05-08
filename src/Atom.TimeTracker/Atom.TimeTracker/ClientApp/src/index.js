@@ -9,10 +9,18 @@ const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
 
 ReactDOM.render(
-  <BrowserRouter basename={baseUrl}>
-    <App />
-  </BrowserRouter>,
-  rootElement);
+    [
+        <BrowserRouter basename={baseUrl}>
+            <App />
+        </BrowserRouter>,
+        <footer>
+            Powered by{' '}
+            <a className="badge badge-light" href="https://github.com/AtomPager/Atom.TimeTracker">
+                Atom Time Tracker
+            </a>
+        </footer>,
+    ],
+    rootElement
+);
 
 registerServiceWorker();
-
