@@ -73,7 +73,7 @@ namespace Atom.TimeTracker.Database
                 entity.HasOne(d => d.Project)
                     .WithMany(d=>d.TimeSheetEntries)
                     .OnDelete(DeleteBehavior.Restrict)
-                    .IsRequired();
+                    .IsRequired(false);
 
                 entity.Property(d => d.PercentOfPeriod).IsRequired();
                 entity.Property(d => d.Value).IsRequired();

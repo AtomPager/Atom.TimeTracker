@@ -22,15 +22,6 @@ export class TimeSheetDetail extends Component {
         timeSheetId: Joi.number().integer().min(1),
     };
 
-    // From broofa @ https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
-    static uuidv4() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (Math.random() * 16) | 0,
-                v = c === 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
-    }
-
     componentDidMount() {
         const { error } = Joi.validate(this.props.match.params, this.schema);
         if (error) {
@@ -40,25 +31,14 @@ export class TimeSheetDetail extends Component {
         }
 
         const { timeSheetId } = this.props.match.params;
-
-        this.setState({ timeSheetId });
         axios
             .get(`api/TimeSheet/${timeSheetId}`)
             .then((r) => {
                 const timeSheet = r.data;
 
                 // Add a key field for internal tracking, as when we add new entried during editing, we will not have the Id to use as a key.
-                const entries = timeSheet.entries.map((e) => {
-                    return {
-                        id: e.id,
-                        key: TimeSheetDetail.uuidv4(),
-                        note: e.note,
-                        percentOfPeriod: e.percentOfPeriod,
-                        value: e.value,
-                        project: { ...e.project },
-                    };
-                });
-                this.setState({ submittedDateTime: timeSheet.submittedDateTime, entries, timePeriod: timeSheet.timePeriod, loading: false });
+                const entries = timeSheet.entries;
+                this.setState({ timeSheetId, submittedDateTime: timeSheet.submittedDateTime, entries, timePeriod: timeSheet.timePeriod, loading: false });
             })
             .catch((error) => {
                 if (error.response) {
@@ -96,7 +76,7 @@ export class TimeSheetDetail extends Component {
             if (this.timeout) {
                 clearTimeout(this.timeout);
             }
-            this.timeout = setTimeout(this.save, 5000, true);
+            this.timeout = setTimeout(this.save, 4000, true);
         }
     }
 
@@ -105,14 +85,44 @@ export class TimeSheetDetail extends Component {
     };
 
     save = async (updateState) => {
+        const timeSheetId = this.state.timeSheetId;
+        if (!timeSheetId) {
+            console.error("Time Sheet not loaded, can't create new Entry.");
+            return;
+        }
+
         const values = this.state.entries;
         console.log('Saving', values);
         clearTimeout(this.timeout);
         this.setState({ saving: true, hasChanged: false });
 
-        await this.sleep(1000);
-        if (updateState) {
-            this.setState({ saving: false });
+        try {
+            const res = await axios.post(`api/TimeSheet/${timeSheetId}`, { entries: values });
+            console.log(res);
+            if (updateState) {
+                this.setState({ saving: false });
+            }
+        } catch (error) {
+            console.error('Error Creating time sheet entry', error);
+        }
+    };
+
+    handleSubmit = async (e) => {
+        const timeSheetId = this.state.timeSheetId;
+        if (!timeSheetId) {
+            console.error("Time Sheet not loaded, can't create new Entry.");
+            return;
+        }
+
+        if (this.state.hasChanged) await this.save(true);
+        this.setState({ saving: true, hasChanged: false });
+
+        try {
+            const res = await axios.post(`api/TimeSheet/${timeSheetId}/submit`);
+            console.log(res);
+            this.setState({ saving: false, submittedDateTime: res.data.submittedDateTime });
+        } catch (error) {
+            console.error('Error Creating time sheet entry', error);
         }
     };
 
@@ -121,17 +131,16 @@ export class TimeSheetDetail extends Component {
         const index = entries.indexOf(entry);
         let newValue = { ...entry };
 
-        newValue[e.name] = e.value;
+        newValue[e.name] = e.type === 'number' ? Number(e.value) : e.value;
         entries[index] = newValue;
 
         if (e.name === 'value') {
             // Need to re-calculate the percentOfPeriod
             let sumOfValues = 0;
             entries.forEach((e) => {
-                sumOfValues += Number(e.value);
+                sumOfValues += e.value;
             });
 
-            console.log('sum of values is:', sumOfValues);
             entries = entries.map((e) => {
                 let ec = { ...e };
                 ec.percentOfPeriod = ec.value / sumOfValues;
@@ -143,32 +152,75 @@ export class TimeSheetDetail extends Component {
     };
 
     handleEntryCreate = () => {
-        let entries = [...this.state.entries];
+        const timeSheetId = this.state.timeSheetId;
+        if (!timeSheetId) {
+            console.error("Time Sheet not loaded, can't create new Entry.");
+            return;
+        }
 
-        entries.push({ key: TimeSheetDetail.uuidv4(), id: null, note: undefined, value: 0, percentOfPeriod: 0, project: {} });
-        this.setState({ entries, hasChanged: true });
+        axios
+            .post(`api/TimeSheet/${timeSheetId}/entries`, {})
+            .then((res) => {
+                console.log(res);
+                let entries = [...this.state.entries];
+                entries.push(res.data);
+                this.setState({ entries });
+            })
+            .catch((error) => {
+                console.error('Error Creating time sheet entry', error);
+            });
     };
 
     handleEntryDelete = (e) => {
-        let entries = [...this.state.entries];
-        const index = entries.indexOf(e);
-        if (index > -1) {
-            entries.splice(index, 1);
-            this.setState({ entries, hasChanged: true });
+        const timeSheetId = this.state.timeSheetId;
+        if (!timeSheetId) {
+            console.error("Time Sheet not loaded, can't create new Entry.");
+            return;
         }
+
+        axios
+            .delete(`api/TimeSheet/${timeSheetId}/entries/${e.id}`, {})
+            .then((res) => {
+                console.log(res);
+                let entries = [...this.state.entries];
+                const index = entries.indexOf(e);
+                if (index > -1) {
+                    entries.splice(index, 1);
+
+                    if (e.value > 0) {
+                        // Need to re-calculate the percentOfPeriod
+                        let sumOfValues = 0;
+                        entries.forEach((ent) => {
+                            sumOfValues += ent.value;
+                        });
+
+                        entries = entries.map((ent) => {
+                            let ec = { ...ent };
+                            ec.percentOfPeriod = ec.value / sumOfValues;
+                            return ec;
+                        });
+                    }
+
+                    this.setState({ entries });
+                }
+            })
+            .catch((error) => {
+                console.error('Error Creating time sheet entry', error);
+            });
     };
 
     renderEntityTable = () => {
         const { entries, submittedDateTime } = this.state;
+        const tableId = submittedDateTime ? 'timesheet' : 'editTimeSheet';
         return (
-            <table className="table table-sm table-striped" aria-labelledby="tabelLabel">
+            <table className="table table-sm table-striped" id={tableId} aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
-                        <th style={{ minWidth: '150px' }}>Project</th>
-                        <th>Note</th>
-                        <th>Parts</th>
-                        <th>%</th>
-                        <th></th>
+                        <th className="timeSheet-col-auto">Project</th>
+                        <th className="timeSheet-col-sm">Note</th>
+                        <th className="timeSheet-col-sm">Parts</th>
+                        <th className="timeSheet-col-sm">%</th>
+                        {!submittedDateTime && <th className="timeSheet-col-xs"></th>}
                     </tr>
                 </thead>
                 <tbody>{entries.map((entry) => (submittedDateTime ? this.renderEntityRow(entry) : this.renderEntityEditRow(entry)))}</tbody>
@@ -177,13 +229,13 @@ export class TimeSheetDetail extends Component {
     };
 
     renderEntityEditRow = (entry) => {
-        return <TimeSheetDetailNewEntry projects={this.state.projects} key={entry.key} entry={entry} onDelete={this.handleEntryDelete} onChange={this.handleEntryChange} />;
+        return <TimeSheetDetailNewEntry projects={this.state.projects} key={entry.id} entry={entry} onDelete={this.handleEntryDelete} onChange={this.handleEntryChange} />;
     };
 
     renderEntityRow = (entry) => {
         return (
             <tr key={entry.id}>
-                <td>{entry.projectName}</td>
+                <td>{entry.project.name}</td>
                 <td>{entry.note}</td>
                 <td>{entry.value}</td>
                 <td>{entry.percentOfPeriod}</td>
@@ -229,15 +281,19 @@ export class TimeSheetDetail extends Component {
                     </div>
                     <div className="col ">
                         <span className="float-right">
-                            {this.state.saving ? (
-                                <span className="badge badge-warning align-middle">
-                                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving
-                                </span>
-                            ) : (
-                                !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
-                            )}
-                            &nbsp;&nbsp;
-                            {!this.state.submittedDateTime && <button className="btn btn-sm btn-success">Submit TImeSheet</button>}
+                            {!this.state.submittedDateTime && [
+                                this.state.saving ? (
+                                    <span className="badge badge-warning align-middle">
+                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving
+                                    </span>
+                                ) : (
+                                    !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
+                                ),
+                                <span>&nbsp;&nbsp;</span>,
+                                <button className="btn btn-sm btn-success" onClick={this.handleSubmit}>
+                                    Submit TImeSheet
+                                </button>,
+                            ]}
                         </span>
                     </div>
                 </div>
@@ -343,7 +399,7 @@ export class TimeSheetDetailNewEntry extends Component {
                 <td>
                     <button className="btn" onClick={(e) => this.setState({ notesIsOpen: true })}>
                         <span aria-label="view note" role="img">
-                            📓
+                            {this.props.entry.note ? '📓' : '➕'}
                         </span>
                     </button>
                     <Modal isOpen={this.state.notesIsOpen} ariaHideApp={false}>
@@ -375,7 +431,7 @@ export class TimeSheetDetailNewEntry extends Component {
                 </td>
                 <td>{(this.props.entry.percentOfPeriod * 100).toFixed(1)}</td>
                 <td>
-                    <button className="btn btn-sm" onClick={() => this.props.onDelete(this.props.entry)}>
+                    <button style={{ padding: 0 }} className="btn btn-sm" onClick={() => this.props.onDelete(this.props.entry)}>
                         <span role="img" aria-label="Delete">
                             🗑️
                         </span>

@@ -43,6 +43,8 @@
     <Compile Remove="Migrations\20200503204123_ChangeTimePeriodDateType.Designer.cs" />
     <Compile Remove="Migrations\20200503204524_vw_TimePeriodSummay.cs" />
     <Compile Remove="Migrations\20200503204524_vw_TimePeriodSummay.Designer.cs" />
+    <Compile Remove="Migrations\20200508134537_MakeProjectOptionalOnTimeSheetEntry.cs" />
+    <Compile Remove="Migrations\20200508134537_MakeProjectOptionalOnTimeSheetEntry.Designer.cs" />
     <Compile Remove="WeatherForecast.cs" />
   </ItemGroup>
 

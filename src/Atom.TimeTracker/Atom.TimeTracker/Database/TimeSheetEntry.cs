@@ -7,7 +7,8 @@ namespace Atom.TimeTracker.Database
         public int Id { get; set; }
         public Project Project { get; set; }
         [JsonIgnore] public TimeSheet TimeSheet { get; set; }
-        [JsonIgnore] public int ProjectId { get; set; }
+        [JsonIgnore] public int? ProjectId { get; set; }
+        [JsonIgnore] public int TimeSheetId { get; set; }
         
         public string Note { get; set; }
 

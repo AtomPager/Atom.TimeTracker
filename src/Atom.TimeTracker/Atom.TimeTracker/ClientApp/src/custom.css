@@ -37,3 +37,30 @@ footer {
 .partsInput {
     max-width: 50pt;
 }
+
+@media (max-width: 575.98px) {
+    #editTimeSheet .timeSheet-col-sm {
+        width: 50px;
+    }
+
+    #editTimeSheet .timeSheet-col-xs {
+        width: 25px;
+    }
+}
+@media (min-width: 576px) {
+    #editTimeSheet .timeSheet-col-sm {
+        width: 75px;
+    }
+
+    #editTimeSheet .timeSheet-col-xs {
+        width: 35px;
+    }
+}
+
+#editTimeSheet .timeSheet-col-auto {
+    width: auto;
+}
+
+#editTimeSheet.table {
+    table-layout: fixed;
+}
