@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Joi from 'joi-browser';
 import axios from 'axios';
-import { DebounceInput } from 'react-debounce-input';
+import debounce from 'lodash.debounce';
+//import { DebounceInput } from 'react-debounce-input';
+import AsyncCreatableSelect from 'react-select/async-creatable';
 
 export class TimeSheetDetail extends Component {
     state = {
@@ -50,7 +52,7 @@ export class TimeSheetDetail extends Component {
                         id: e.id,
                         key: TimeSheetDetail.uuidv4(),
                         note: e.note,
-                        pop: e.percentOfPeriod,
+                        percentOfPeriod: e.percentOfPeriod,
                         value: e.value,
                         projectId: e.project.id,
                         projectName: e.project.name,
@@ -72,13 +74,19 @@ export class TimeSheetDetail extends Component {
             });
     }
 
+    async componentWillUnmount() {
+        if (this.state.hasChanged) {
+            await this.save(false);
+        }
+    }
+
     componentDidUpdate(nextProps) {
         const { hasChanged } = this.state;
         if (hasChanged) {
             if (this.timeout) {
                 clearTimeout(this.timeout);
             }
-            this.timeout = setTimeout(this.save, 5000);
+            this.timeout = setTimeout(this.save, 5000, true);
         }
     }
 
@@ -86,14 +94,16 @@ export class TimeSheetDetail extends Component {
         return new Promise((resolve) => setTimeout(resolve, milliseconds));
     };
 
-    save = async () => {
+    save = async (updateState) => {
         const values = this.state.entries;
         console.log('Saving', values);
         clearTimeout(this.timeout);
         this.setState({ saving: true, hasChanged: false });
 
         await this.sleep(1000);
-        this.setState({ saving: false });
+        if (updateState) {
+            this.setState({ saving: false });
+        }
     };
 
     handleEntryChange = (e, entry) => {
@@ -190,23 +200,20 @@ export class TimeSheetDetail extends Component {
                 {TimeSheetDetail.renderHeading(this.state)}
                 <hr />
                 <div className="row">
-                    <div className="col-2">
+                    <div className="col-4">
                         <h3>Entries</h3>
                     </div>
                     <div className="col ">
-                        {this.state.saving ? (
-                            <span className="badge badge-warning align-middle">
-                                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving
-                            </span>
-                        ) : (
-                            !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
-                        )}
                         <span className="float-right">
-                            {!this.state.submittedDateTime && (
-                                <button className="btn btn-sm btn-success" onClick={this.handleEntryCreate}>
-                                    Submit TImeSheet
-                                </button>
+                            {this.state.saving ? (
+                                <span className="badge badge-warning align-middle">
+                                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving
+                                </span>
+                            ) : (
+                                !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
                             )}
+                            &nbsp;&nbsp;
+                            {!this.state.submittedDateTime && <button className="btn btn-sm btn-success">Submit TImeSheet</button>}
                         </span>
                     </div>
                 </div>
@@ -226,30 +233,56 @@ export class TimeSheetDetail extends Component {
 }
 
 export class TimeSheetDetailNewEntry extends Component {
-    state = {};
+    state = {
+        projects: [],
+    };
 
-    constructor() {
-        super();
+    handleProjectLoadOptions = debounce((inputValue, callback) => {
+        console.log('options', inputValue);
+        const searchTerm = inputValue.trim();
+        const url = 'api/projects';
+        this.props.onChange({ name: 'projectName', value: searchTerm }, this.props.entry);
 
-        this.projectInput = React.createRef();
-    }
+        axios
+            .get(url, {
+                params: { searchTerm },
+            })
+            .then((res) => {
+                console.log(res);
+                callback(res.data.map((p) => ({ value: p.id, label: p.name })));
+            })
+            .catch((error) => {
+                console.log(error);
+                callback([]);
+            });
+    }, 500);
 
-    componentDidMount() {
-        this.projectInput.current && this.projectInput.current.focus();
-    }
+    handleProjectChange = (e) => {
+        console.log('change', e);
+    };
+
+    handleProjectCreate = (e) => {
+        console.log('Create', e);
+    };
+
+    handlePieceSearchClick = (e, item) => {
+        e.preventDefault();
+        this.setState({ project: item, showProjectList: false });
+        this.props.onChange({ name: 'projectId', value: item.id }, this.props.entry);
+        this.props.onChange({ name: 'projectName', value: item.name }, this.props.entry);
+    };
 
     render() {
         return (
             <tr>
                 <td>
-                    <DebounceInput
-                        name="projectName"
-                        className="form-control form-control-sm"
-                        minLength={2}
-                        debounceTimeout={500}
-                        value={this.props.entry.projectName}
-                        onChange={(e) => this.props.onChange(e.target, this.props.entry)}
-                        inputRef={this.projectInput}
+                    <AsyncCreatableSelect
+                        autoFocus
+                        cacheOptions
+                        onCreateOption={this.handleProjectCreate}
+                        onChange={this.handleProjectChange}
+                        loadOptions={this.handleProjectLoadOptions}
+                        defaultOptions
                     />
                 </td>
                 <td>
@@ -265,11 +298,11 @@ export class TimeSheetDetailNewEntry extends Component {
                         name="value"
                         onChange={(e) => this.props.onChange(e.currentTarget, this.props.entry)}
                         type="number"
-                        value={this.props.entry.Value}
+                        value={this.props.entry.value}
                         className="partsInput form-control form-control-sm"
                     ></input>
                 </td>
-                <td>{this.props.entry.PercentOfPeriod}</td>
+                <td>{this.props.entry.percentOfPeriod}</td>
                 <td>
                     <button className="btn btn-sm" onClick={() => this.props.onDelete(this.props.entry)}>
                         <span role="img" aria-label="Delete">

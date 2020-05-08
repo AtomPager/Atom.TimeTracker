@@ -55,7 +55,7 @@ export class TimePeriodDetails extends Component {
         const viewUrl = `/time-periods/${person.id}`;
         return (
             <tr key={person.id}>
-                <td>{person.timeSheetId && <Link to={viewUrl}>View</Link>}</td>
+                {/* <td>{person.timeSheetId && <Link to={viewUrl}>{person.name}</Link>}</td> */}
                 <td>{person.name}</td>
                 <td>{person.timeSheetId ? '✔️' : '❌'}</td>
                 <td>{person.submittedDateTime ? '✔️' : '❌'}</td>
@@ -66,10 +66,9 @@ export class TimePeriodDetails extends Component {
 
     static renderTable(persons) {
         return (
-            <table className="table table-striped" aria-labelledby="tabelLabel">
+            <table className="table table-striped table-sm" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
-                        <th></th>
                         <th>Name</th>
                         <th>Created</th>
                         <th>Submitted</th>

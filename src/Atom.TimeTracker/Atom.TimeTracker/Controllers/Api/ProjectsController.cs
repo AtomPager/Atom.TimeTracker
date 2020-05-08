@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Atom.TimeTracker.Database;
+using Atom.TimeTracker.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,13 +20,17 @@ namespace Atom.TimeTracker.Controllers.Api
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<IEnumerable<Project>> GetProjects(string startsWith)
+        [HttpGet()]
+        public async Task<IEnumerable<Project>> GetProjects(string searchTerm = null, bool showAll = false)
         {
             IQueryable<Project> q = _context.Projects;
-            if (startsWith != null)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                q = q.Where(p => p.Name.StartsWith(startsWith));
+                q = q.Where(p => p.Name.Contains(searchTerm));
+            }
+            else if (!showAll)
+            {
+                q = q.Where(p => p.IsArchived == false && p.TimeSheetEntries.Any(s => s.TimeSheet.Person.UserName == this.UserName()));
             }
 
             return await q.ToListAsync();
@@ -50,13 +55,13 @@ namespace Atom.TimeTracker.Controllers.Api
             {
                 Name = content.Name,
                 IsRnD = content.IsRnD ?? false,
-                IsObsolete = content.IsObsolete ?? false
+                IsArchived = content.IsObsolete ?? false
             };
 
             await _context.Projects.AddAsync(project);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProject", new {id = project.Id}, project);
+            return CreatedAtAction("GetProject", new { id = project.Id }, project);
         }
 
         [HttpPost("{id}")]
@@ -87,7 +92,7 @@ namespace Atom.TimeTracker.Controllers.Api
 
             if (content.IsObsolete.HasValue)
             {
-                project.IsObsolete = content.IsObsolete.Value;
+                project.IsArchived = content.IsObsolete.Value;
                 hasChange = true;
             }
 

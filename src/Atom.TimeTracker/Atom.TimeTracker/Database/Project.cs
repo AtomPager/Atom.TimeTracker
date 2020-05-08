@@ -1,4 +1,7 @@
-﻿namespace Atom.TimeTracker.Database
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+namespace Atom.TimeTracker.Database
 {
     public class Project
     {
@@ -18,6 +21,8 @@
         /// and should display a warning to the user if they try to use it.
         /// They are still allowed to add it to a time sheet.
         /// </remarks>
-        public bool IsObsolete { get; set; }
+        public bool IsArchived { get; set; }
+
+        [JsonIgnore] public List<TimeSheetEntry> TimeSheetEntries { get; set; }
     }
 }

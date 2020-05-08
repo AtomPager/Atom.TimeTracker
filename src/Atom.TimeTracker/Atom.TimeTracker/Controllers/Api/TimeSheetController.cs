@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Atom.TimeTracker.Database;
+using Atom.TimeTracker.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,7 @@ namespace Atom.TimeTracker.Controllers.Api
         public async Task<IEnumerable<PersonTimeSheets>> GetTimeSheet(bool showAll = false)
         {
             var query = _context.PersonTimeSheets.AsNoTracking()
-                .Where(p => p.UserName == UserName);
+                .Where(p => p.UserName == this.UserName());
 
             if (!showAll)
             {
@@ -45,7 +46,7 @@ namespace Atom.TimeTracker.Controllers.Api
                 .Include(t => t.TimePeriod)
                 .Include(t => t.Entries)
                 .ThenInclude(t=>t.Project)
-                .FirstOrDefaultAsync(t => t.Person.UserName == UserName && t.Id == id);
+                .FirstOrDefaultAsync(t => t.Person.UserName == this.UserName() && t.Id == id);
 
             if (timeSheet == null)
                 return NotFound();
@@ -56,7 +57,7 @@ namespace Atom.TimeTracker.Controllers.Api
         [HttpPost]
         public async Task<ActionResult<TimeSheet>> Create(TimeSheetCreate create)
         {
-            var user = UserName;
+            var user = this.UserName();
             var timePeriod = await _context.TimePeriods.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == create.TimePeriodId);
 
@@ -94,15 +95,5 @@ namespace Atom.TimeTracker.Controllers.Api
             public int TimePeriodId { get; set; }
         }
 
-        private string UserName
-        {
-            get
-            {
-                var name = User?.Identity?.Name ?? "TestUser"; // TODO: Remove once Auth is added.
-                if (string.IsNullOrEmpty(name))
-                    throw new ApplicationException("No user defined");
-                return name;
-            }
-        }
     }
 }

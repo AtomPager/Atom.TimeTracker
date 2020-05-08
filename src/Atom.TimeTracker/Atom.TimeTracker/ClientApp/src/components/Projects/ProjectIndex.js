@@ -50,7 +50,7 @@ export class ProjectIndex extends Component {
 
     async populateProjectData() {
         axios
-            .get('api/Projects')
+            .get('api/Projects', { params: { showAll: true } })
             .then((response) => {
                 const data = response.data;
                 this.setState({ projects: data, loading: false });
