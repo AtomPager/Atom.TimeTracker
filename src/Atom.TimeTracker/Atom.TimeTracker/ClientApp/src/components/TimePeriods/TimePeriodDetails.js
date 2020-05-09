@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Joi from 'joi-browser';
 import axios from 'axios';
-//import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export class TimePeriodDetails extends Component {
     state = { timePeriod: null, persons: null, timePeriodId: null, loading: true, errorMsg: null };
@@ -51,34 +51,62 @@ export class TimePeriodDetails extends Component {
             });
     }
 
-    static renderTableRow(person) {
-        // const viewUrl = `/time-periods/${person.id}`;
+    handleResetTimeSheetClick = (person) => {
+        axios
+            .post(`api/TimeSheet/${person.timeSheetId}/reject`)
+            .then((r) => {
+                var persons = [...this.state.persons];
+                var personIndex = persons.indexOf(person);
+                if (personIndex >= 0) {
+                    persons[personIndex] = { ...person };
+                    persons[personIndex].submittedDateTime = null;
+                    this.setState({ persons });
+                }
+            })
+            .catch((e) => console.warn(e));
+    };
+
+    renderTableRow = (person) => {
+        const viewUrl = `/time-periods/${this.state.timePeriodId}/timesheets/${person.timeSheetId}`;
         return (
             <tr key={person.id}>
-                {/* <td>{person.timeSheetId && <Link to={viewUrl}>{person.name}</Link>}</td> */}
-                <td>{person.name}</td>
+                {person.timeSheetId ? (
+                    <td>
+                        <Link to={viewUrl}>{person.name}</Link>
+                    </td>
+                ) : (
+                    <td>{person.name}</td>
+                )}
                 <td>{person.timeSheetId ? '✔️' : '❌'}</td>
                 <td>{person.submittedDateTime ? '✔️' : '❌'}</td>
                 <td>{person.submittedDateTime && new Date(person.submittedDateTime).toLocaleDateString()}</td>
+                <td className="text-right">
+                    {person.submittedDateTime && (
+                        <button className="btn btn-sm btn-outline-danger" onClick={(e) => this.handleResetTimeSheetClick(person)}>
+                            Reject
+                        </button>
+                    )}
+                </td>
             </tr>
         );
-    }
+    };
 
-    static renderTable(persons) {
+    renderTable = (persons) => {
         return (
-            <table className="table table-striped table-sm" aria-labelledby="tabelLabel">
+            <table className="table table-striped" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Created</th>
                         <th>Submitted</th>
                         <th>Submitted Date</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody>{persons.map((person) => TimePeriodDetails.renderTableRow(person))}</tbody>
+                <tbody>{persons.map((person) => this.renderTableRow(person))}</tbody>
             </table>
         );
-    }
+    };
 
     static renderHeading(timePeriod) {
         return (
@@ -106,7 +134,7 @@ export class TimePeriodDetails extends Component {
             <div>
                 {TimePeriodDetails.renderHeading(this.state.timePeriod)}
                 <h3>Time Sheets</h3>
-                {TimePeriodDetails.renderTable(this.state.persons)}
+                {this.renderTable(this.state.persons)}
             </div>
         );
 

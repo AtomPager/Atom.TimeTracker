@@ -3,6 +3,7 @@ import { Switch, Route, Link } from 'react-router-dom';
 import { TimePeriodIndex } from './TimePeriodIndex';
 import { TimePeriodCreate } from './TimePeriodCreate';
 import { TimePeriodDetails } from './TimePeriodDetails';
+import { TimeSheetDetail } from '../TimeSheets/TimeSheetDetail';
 
 export class TimePeriods extends Component {
     render() {
@@ -22,6 +23,17 @@ export class TimePeriods extends Component {
                                 )}
                             />
                             <Route
+                                path="/time-periods/:timePeriodId/timesheets/:timeSheetId"
+                                render={(props) => {
+                                    const link = `/time-periods/${props.match.params.timePeriodId}`;
+                                    return (
+                                        <Link to={link} className="btn btn-outline-secondary btn-sm">
+                                            Back
+                                        </Link>
+                                    );
+                                }}
+                            />
+                            <Route
                                 path="/time-periods"
                                 render={() => (
                                     <Link to="/time-periods" className="btn btn-outline-secondary btn-sm">
@@ -34,6 +46,7 @@ export class TimePeriods extends Component {
                 </h1>
                 <Switch>
                     <Route path="/time-periods/create" component={TimePeriodCreate} />
+                    <Route path="/time-periods/:timePeriodId/timesheets/:timeSheetId" render={(prop) => <TimeSheetDetail {...prop} readOnly={true} />} />
                     <Route path="/time-periods/:timePeriodId" component={TimePeriodDetails} />
                     <Route path="/time-periods" component={TimePeriodIndex} />
                 </Switch>

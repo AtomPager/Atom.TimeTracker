@@ -24,7 +24,7 @@ namespace Atom.TimeTracker.Controllers.Api
         public async Task<IEnumerable<PersonTimeSheets>> GetTimeSheet(bool showAll = false)
         {
             var query = _context.PersonTimeSheets.AsNoTracking()
-                .Where(p => p.UserName == this.UserName());
+                .Where(p => p.UserName == this.GetUserName());
 
             if (!showAll)
             {
@@ -45,8 +45,9 @@ namespace Atom.TimeTracker.Controllers.Api
                 .AsNoTracking()
                 .Include(t => t.TimePeriod)
                 .Include(t => t.Entries)
-                .ThenInclude(t=>t.Project)
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.UserName() && t.Id == id);
+                .ThenInclude(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == id); 
+            // TODO: Add permission so only the person and their managers can see the time sheet.
 
             if (timeSheet == null)
                 return NotFound();
@@ -57,12 +58,12 @@ namespace Atom.TimeTracker.Controllers.Api
         [HttpPost("{id}")]
         public async Task<ActionResult<TimeSheet>> UpdateTimeSheet(int id, [FromBody] TimeSheetUpdate timeSheetUpdate)
         {
-            if(timeSheetUpdate?.Entries == null)
+            if (timeSheetUpdate?.Entries == null)
                 return new BadRequestResult();
 
             var timeSheet = await _context.TimeSheets
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.UserName() && t.Id == id);
+                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
             if (timeSheet == null)
                 return NotFound();
@@ -71,11 +72,14 @@ namespace Atom.TimeTracker.Controllers.Api
                 return BadRequest("Time Sheet has already been submitted.");
 
             var timeSheetEntries = await _context.TimeSheetEntries
-                .Where(t => t.TimeSheet.Person.UserName == this.UserName() && t.TimeSheetId == id)
-                .ToDictionaryAsync(s=>s.Id);
+                .Where(t => t.TimeSheet.Person.UserName == this.GetUserName() && t.TimeSheetId == id)
+                .ToDictionaryAsync(s => s.Id);
 
             foreach (var update in timeSheetUpdate.Entries)
             {
+                if (update.Value < 0)
+                    return BadRequest($"Value for entries must be positive.");
+
                 if (timeSheetEntries.TryGetValue(update.Id, out var e))
                 {
                     e.Value = update.Value;
@@ -92,23 +96,22 @@ namespace Atom.TimeTracker.Controllers.Api
             var totalValues = timeSheetEntries.Values.Sum(e => e.Value);
             foreach (var e in timeSheetEntries.Values)
             {
-                e.PercentOfPeriod = e.Value / totalValues;
+                e.PercentOfPeriod = totalValues < .001 ? 0 : (e.Value / totalValues);
             }
 
             await _context.SaveChangesAsync();
             timeSheet = await _context.TimeSheets
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.UserName() && t.Id == id);
-            
+                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
+
             return timeSheet;
         }
-
 
         [HttpPost("{id}/submit")]
         public async Task<ActionResult<TimeSheet>> SubmitTimeSheet(int id)
         {
             var timeSheet = await _context.TimeSheets
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.UserName() && t.Id == id);
+                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
             if (timeSheet == null)
                 return NotFound();
@@ -122,12 +125,32 @@ namespace Atom.TimeTracker.Controllers.Api
             return Ok(timeSheet);
         }
 
+        [HttpPost("{id}/reject")]
+        public async Task<ActionResult<TimeSheet>> RejectTimeSheet(int id)
+        {
+            // TODO: Check that the user has the rights to do this on this sheet.
+
+            var timeSheet = await _context.TimeSheets
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (timeSheet == null)
+                return NotFound();
+
+            if (!timeSheet.SubmittedDateTime.HasValue)
+                return new NoContentResult();
+
+            timeSheet.SubmittedDateTime = null;
+            await _context.SaveChangesAsync();
+
+            return new NoContentResult();
+        }
+
         [HttpPost("{id}/entries")]
         public async Task<ActionResult<TimeSheetEntry>> CreateTimeSheetEntry(int id)
         {
             var timeSheet = await _context.TimeSheets
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.UserName() && t.Id == id);
+                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
             if (timeSheet == null)
                 return NotFound();
@@ -135,11 +158,11 @@ namespace Atom.TimeTracker.Controllers.Api
             if (timeSheet.SubmittedDateTime.HasValue)
                 return BadRequest("Time Sheet has already been submitted.");
 
-            var entry = new TimeSheetEntry {TimeSheetId =  id};
+            var entry = new TimeSheetEntry { TimeSheetId = id };
             await _context.TimeSheetEntries.AddAsync(entry);
             await _context.SaveChangesAsync();
 
-            return Ok(entry);
+            return CreatedAtAction("GetTimeSheet", new { id = timeSheet.Id }, entry);
         }
 
         [HttpDelete("{id}/entries/{entryId}")]
@@ -147,7 +170,7 @@ namespace Atom.TimeTracker.Controllers.Api
         {
             var timeSheetEntry = await _context.TimeSheetEntries
                 .FirstOrDefaultAsync(t =>
-                    t.TimeSheet.Person.UserName == this.UserName()
+                    t.TimeSheet.Person.UserName == this.GetUserName()
                     && t.TimeSheet.SubmittedDateTime == null
                     && t.TimeSheet.Id == id
                     && t.Id == entryId);
@@ -164,7 +187,7 @@ namespace Atom.TimeTracker.Controllers.Api
         [HttpPost]
         public async Task<ActionResult<TimeSheet>> Create(TimeSheetCreate create)
         {
-            var user = this.UserName();
+            var user = this.GetUserName();
             var timePeriod = await _context.TimePeriods.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == create.TimePeriodId);
 

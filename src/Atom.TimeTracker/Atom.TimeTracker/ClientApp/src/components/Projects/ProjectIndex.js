@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 export class ProjectIndex extends Component {
     constructor(props) {
@@ -12,11 +13,16 @@ export class ProjectIndex extends Component {
     }
 
     static renderTableRow(project) {
+        const viewUrl = `/projects/${project.id}`;
         return (
             <tr key={project.id}>
-                <td>{project.name}</td>
+                <td>
+                    <Link to={viewUrl}>{project.name}</Link>
+                </td>
+                <td>{project.classification}</td>
+                <td>{project.group}</td>
                 <td>{project.isRnD ? '✔️' : ''}</td>
-                <td>{project.isObsolete ? '✔️' : ''}</td>
+                <td>{project.isArchived ? '✔️' : ''}</td>
             </tr>
         );
     }
@@ -27,8 +33,10 @@ export class ProjectIndex extends Component {
                 <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Classification</th>
+                        <th>Group</th>
                         <th>R&#x26;D</th>
-                        <th>Obsolete</th>
+                        <th>Archived</th>
                     </tr>
                 </thead>
                 <tbody>{projects.map((project) => ProjectIndex.renderTableRow(project))}</tbody>

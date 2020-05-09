@@ -18,15 +18,7 @@ export class TimeSheets extends Component {
                     Time Sheets
                     <span className="float-right">
                         <Switch>
-                            <Route
-                                path="/timeSheets"
-                                exact
-                                render={() => (
-                                    <button className="btn btn-primary btn-sm" onClick={this.handleShowHideAll}>
-                                        {this.state.showAll ? 'Collapse View' : 'Show All'}
-                                    </button>
-                                )}
-                            />
+                            <Route path="/timeSheets" exact />
                             <Route
                                 path="/timeSheets"
                                 render={() => (
@@ -40,7 +32,7 @@ export class TimeSheets extends Component {
                 </h1>
                 <Switch>
                     <Route path="/timeSheets/:timeSheetId" component={TimeSheetDetail} />
-                    <Route path="/timeSheets" render={(prop) => <TimeSheetIndex {...prop} showAll={this.state.showAll}></TimeSheetIndex>} />
+                    <Route path="/timeSheets" render={(prop) => <TimeSheetIndex {...prop} showAll={true}></TimeSheetIndex>} />
                 </Switch>
             </div>
         );

@@ -20,11 +20,13 @@ export class TimeSheetDetail extends Component {
 
     schema = {
         timeSheetId: Joi.number().integer().min(1),
+        timePeriodId: Joi.any().optional(),
     };
 
     componentDidMount() {
         const { error } = Joi.validate(this.props.match.params, this.schema);
         if (error) {
+            console.warn(error);
             // TODO: Show Error
             this.setState({ errorMsg: 'Invalid ID', loading: false });
             return;
@@ -53,15 +55,16 @@ export class TimeSheetDetail extends Component {
                 }
             });
 
-        axios
-            .get('api/projects')
-            .then((res) => {
-                console.log(res);
-                this.setState({ projects: res.data });
-            })
-            .catch((error) => {
-                console.error('Error getting projects', error);
-            });
+        if (!this.props.readOnly)
+            axios
+                .get('api/projects')
+                .then((res) => {
+                    console.log(res);
+                    this.setState({ projects: res.data });
+                })
+                .catch((error) => {
+                    console.error('Error getting projects', error);
+                });
     }
 
     async componentWillUnmount() {
@@ -209,9 +212,14 @@ export class TimeSheetDetail extends Component {
             });
     };
 
+    isReadOnly = () => {
+        return this.state.submittedDateTime || this.props.readOnly;
+    };
+
     renderEntityTable = () => {
-        const { entries, submittedDateTime } = this.state;
-        const tableId = submittedDateTime ? 'timesheet' : 'editTimeSheet';
+        const { entries } = this.state;
+        const isReadOnly = this.isReadOnly();
+        const tableId = isReadOnly ? 'timesheet' : 'editTimeSheet';
         return (
             <table className="table table-sm table-striped" id={tableId} aria-labelledby="tabelLabel">
                 <thead>
@@ -220,10 +228,10 @@ export class TimeSheetDetail extends Component {
                         <th className="timeSheet-col-sm">Note</th>
                         <th className="timeSheet-col-sm">Parts</th>
                         <th className="timeSheet-col-sm">%</th>
-                        {!submittedDateTime && <th className="timeSheet-col-xs"></th>}
+                        {!isReadOnly && <th className="timeSheet-col-xs"></th>}
                     </tr>
                 </thead>
-                <tbody>{entries.map((entry) => (submittedDateTime ? this.renderEntityRow(entry) : this.renderEntityEditRow(entry)))}</tbody>
+                <tbody>{entries.map((entry) => (isReadOnly ? this.renderEntityRow(entry) : this.renderEntityEditRow(entry)))}</tbody>
             </table>
         );
     };
@@ -264,6 +272,24 @@ export class TimeSheetDetail extends Component {
         );
     }
 
+    renderSubmitButton = () => {
+        return (
+            <span className="float-right">
+                {this.state.saving ? (
+                    <span className="badge badge-warning align-middle">
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving
+                    </span>
+                ) : (
+                    !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
+                )}
+                <span>&nbsp;&nbsp;</span>
+                <button className="btn btn-sm btn-success" onClick={this.handleSubmit}>
+                    Submit TImeSheet
+                </button>
+            </span>
+        );
+    };
+
     render() {
         let contents = this.state.loading ? (
             <p>
@@ -279,27 +305,11 @@ export class TimeSheetDetail extends Component {
                     <div className="col-4">
                         <h3>Entries</h3>
                     </div>
-                    <div className="col ">
-                        <span className="float-right">
-                            {!this.state.submittedDateTime && [
-                                this.state.saving ? (
-                                    <span className="badge badge-warning align-middle">
-                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving
-                                    </span>
-                                ) : (
-                                    !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
-                                ),
-                                <span>&nbsp;&nbsp;</span>,
-                                <button className="btn btn-sm btn-success" onClick={this.handleSubmit}>
-                                    Submit TImeSheet
-                                </button>,
-                            ]}
-                        </span>
-                    </div>
+                    <div className="col ">{!this.isReadOnly() && this.renderSubmitButton()}</div>
                 </div>
                 <div>{this.renderEntityTable()}</div>
                 <span>
-                    {!this.state.submittedDateTime && (
+                    {!this.isReadOnly() && (
                         <button className="btn btn-sm btn-primary" onClick={this.handleEntryCreate}>
                             Add new row
                         </button>
@@ -379,7 +389,7 @@ export class TimeSheetDetailNewEntry extends Component {
 
         // See : https://react-select.com/creatable
         return (
-            <tr>
+            <tr key={this.props.entry.id}>
                 <td>
                     <CreatableSelect
                         autoFocus
@@ -427,6 +437,7 @@ export class TimeSheetDetailNewEntry extends Component {
                         type="number"
                         value={this.props.entry.value}
                         className="partsInput form-control form-control-sm"
+                        onFocus={(e) => e.target.select()}
                     ></input>
                 </td>
                 <td>{(this.props.entry.percentOfPeriod * 100).toFixed(1)}</td>

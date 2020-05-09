@@ -24,7 +24,6 @@ export class TimeSheetIndex extends Component {
                         <th></th>
                         <th className="d-none d-md-block">Start Date</th>
                         <th>End Date</th>
-                        <th>Due in</th>
                         <th>Status</th>
                         <th>Date Submitted</th>
                     </tr>

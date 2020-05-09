@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Switch, Route, Link } from 'react-router-dom';
 import { ProjectIndex } from './ProjectIndex';
 import { ProjectCreate } from './ProjectCreate';
+import { ProjectEdit } from './ProjectEdit';
 
 export class Projects extends Component {
     render() {
@@ -33,6 +34,7 @@ export class Projects extends Component {
                 </h1>
                 <Switch>
                     <Route path="/projects/create" component={ProjectCreate} />
+                    <Route path="/projects/:projectId" component={ProjectEdit} />
                     <Route path="/projects" component={ProjectIndex} />
                 </Switch>
             </div>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Atom.TimeTracker.Database;
+using Atom.TimeTracker.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,12 +23,13 @@ namespace Atom.TimeTracker.Controllers.Api
         [HttpGet]
         public ContextResponse Get()
         {
-            return new ContextResponse {Name = this.User.Identity.Name};
+            return new ContextResponse {Name = this.User.Identity.Name, User = this.GetUserName()};
         }
 
         public class ContextResponse
         {
             public string Name { get; set; }
+            public string User { get; set; }
         }
     }
 }

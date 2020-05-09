@@ -13,6 +13,9 @@ namespace Atom.TimeTracker.Database
         /// </summary>
         public bool IsRnD { get; set; }
 
+        public string Group { get; set; }
+        public string Classification { get; set; }
+
         /// <summary>
         /// Indicates that a project shouldn't be used for new time sheets.
         /// </summary>

@@ -28,10 +28,12 @@ footer {
     /* position: absolute;
     bottom: 0;
     width: 100%; */
+    right: 0px;
     padding: 10px;
     padding-top: 15px;
     white-space: nowrap;
     flex-shrink: 0;
+    float: right;
 }
 
 .partsInput {

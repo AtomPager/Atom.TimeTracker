@@ -53,6 +53,8 @@ namespace Atom.TimeTracker.Database
                     .WithMany(d => d.TimeSheets)
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired();
+
+                entity.HasIndex(t => new {t.TimePeriodId, t.PersonId}).IsUnique();
             });
 
             modelBuilder.Entity<TimePeriod>(entity =>

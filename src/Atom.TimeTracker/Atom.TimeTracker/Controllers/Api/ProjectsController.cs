@@ -26,16 +26,17 @@ namespace Atom.TimeTracker.Controllers.Api
             IQueryable<Project> q = _context.Projects;
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                q = q.Where(p => p.Name.Contains(searchTerm));
+                q = q.Where(p => p.Name.Contains(searchTerm) && p.IsArchived == false);
             }
             else if (!showAll)
             {
-                q = q.Where(p => p.IsArchived == false && p.TimeSheetEntries.Any(s => s.TimeSheet.Person.UserName == this.UserName()));
+                q = q.Where(p => p.IsArchived == false && p.TimeSheetEntries.Any(s => s.TimeSheet.Person.UserName == this.GetUserName() && s.TimeSheet.TimePeriod.PeriodEndDate > DateTime.Now.AddMonths(-1)));
             }
 
-            return await q.ToListAsync();
+            return await q.OrderBy(p => p.Name).ToListAsync();
         }
 
+        [HttpGet("{id}")]
         public async Task<ActionResult<Project>> GetProject(int id)
         {
             var project = await _context.Projects.FindAsync(id);
@@ -49,13 +50,21 @@ namespace Atom.TimeTracker.Controllers.Api
         {
             var project = await _context.Projects.FirstOrDefaultAsync(p => p.Name == content.Name);
             if (project != null)
+            {
+                if (project.IsArchived)
+                {
+                    project.IsArchived = false;
+                    await _context.SaveChangesAsync();
+                    return CreatedAtAction("GetProject", new { id = project.Id }, project);
+                }
                 return Conflict("Project with this name already exists.");
+            }
 
             project = new Project
             {
                 Name = content.Name,
                 IsRnD = content.IsRnD ?? false,
-                IsArchived = content.IsObsolete ?? false
+                IsArchived = content.IsArchived ?? false
             };
 
             await _context.Projects.AddAsync(project);
@@ -90,9 +99,21 @@ namespace Atom.TimeTracker.Controllers.Api
                 hasChange = true;
             }
 
-            if (content.IsObsolete.HasValue)
+            if (content.IsArchived.HasValue)
             {
-                project.IsArchived = content.IsObsolete.Value;
+                project.IsArchived = content.IsArchived.Value;
+                hasChange = true;
+            }
+
+            if (content.Classification != null)
+            {
+                project.Classification = content.Classification;
+                hasChange = true;
+            }
+
+            if (content.Group != null)
+            {
+                project.Group = content.Group;
                 hasChange = true;
             }
 
@@ -108,7 +129,9 @@ namespace Atom.TimeTracker.Controllers.Api
         {
             public string Name { get; set; }
             public bool? IsRnD { get; set; }
-            public bool? IsObsolete { get; set; }
+            public bool? IsArchived { get; set; }
+            public string Group { get; set; }
+            public string Classification { get; set; }
         }
     }
 }

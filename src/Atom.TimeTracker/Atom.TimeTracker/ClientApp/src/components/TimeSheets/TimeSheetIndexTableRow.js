@@ -47,16 +47,16 @@ export class TimeSheetIndexTableRow extends Component {
         let statusIcon = '⚪';
         if (timeSheet.submittedDateTime) {
             statusIcon = '✔️';
-            status = 'sumbitted';
+            status = '';
         } else if (timeSheet.dueInDays <= -10) {
             statusIcon = '⚠️';
-            status = 'late';
+            status = `${-timeSheet.dueInDays} days over due`;
         } else if (timeSheet.dueInDays <= 0) {
             statusIcon = '🟠';
             status = 'due';
         } else if (timeSheet.dueInDays <= 5) {
             statusIcon = '🟡';
-            status = 'due soon';
+            status = `due in ${timeSheet.dueInDays} days`;
         } else if (timeSheet.dueInDays <= 10) {
             statusIcon = '🟢';
             status = 'up coming';
@@ -84,13 +84,12 @@ export class TimeSheetIndexTableRow extends Component {
                 </td>
                 <td className="d-none d-md-block">{startDate.toLocaleDateString()}</td>
                 <td>{new Date(timeSheet.periodEndDate).toLocaleDateString()}</td>
-                <td>{!timeSheet.submittedDateTime && timeSheet.dueInDays}</td>
                 <td>
                     <span role="img" aria-label={status}>
                         {statusIcon}
                     </span>
                 </td>
-                <td>{timeSheet.submittedDateTime && new Date(timeSheet.submittedDateTime).toLocaleDateString()}</td>
+                <td>{timeSheet.submittedDateTime ? new Date(timeSheet.submittedDateTime).toLocaleDateString() : status}</td>
             </tr>
         );
     }
