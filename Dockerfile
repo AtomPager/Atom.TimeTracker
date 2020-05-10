@@ -22,3 +22,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Atom.Time.dll"]
+HEALTHCHECK --start-period=45s CMD curl --fail http://localhost:80/health || exit

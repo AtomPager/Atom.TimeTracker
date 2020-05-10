@@ -5,13 +5,6 @@ namespace Atoms.Time.Database
 {
     public class TimeSheetContext : DbContext
     {
-        private static readonly string SqlGetPersonsTimeSheet = @"
-            SELECT persons.*, TimeSheets.id as TimeSheetId, TimeSheets.SubmittedDateTime as SubmittedDateTime
-            FROM TimePeriods, Persons 
-            FULL OUTER JOIN TimeSheets ON TimeSheets.timePeriodId = @timePeriodId AND Persons.Id = TimeSheets.PersonId
-            WHERE persons.id IS NOT NULL AND TimePeriods.Id = @timePeriodId AND (TimeSheets.Id IS NOT NULL OR (Persons.IsActive = 1 and Persons.startDate <= TimePeriods.PeriodEndDate))
-            ORDER By Name";
-
         public TimeSheetContext()
         {
         }
@@ -28,11 +21,6 @@ namespace Atoms.Time.Database
         public DbSet<Project> Projects { get; set; }
         public DbSet<TimePeriodSummary> TimePeriodSummary { get; set; }
         public DbSet<PersonTimeSheets> PersonTimeSheets { get; set; }
-
-        //public IQueryable<PersonsTimeSheets> GetPersonsTimeSheets(int timePeriodId)
-        //{
-        //    return this.Set<PersonsTimeSheets>().FromSqlRaw(SqlGetPersonsTimeSheet, new SqlParameter("@timePeriodId", timePeriodId)).AsNoTracking();
-        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

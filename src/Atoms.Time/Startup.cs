@@ -109,6 +109,9 @@ namespace Atoms.Time
                 configuration.RootPath = "ClientApp/build";
             });
 
+            services.AddHealthChecks()
+                .AddDbContextCheck<TimeSheetContext>();
+
             services.AddDbContext<TimeSheetContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("SqlDbConnection")));
         }
@@ -150,6 +153,7 @@ namespace Atoms.Time
                    && !context.Request.Path.Value.Equals("/manifest.json")
                    && !context.Request.Path.Value.Equals("/favicon.ico")
                    && !context.Request.Path.Value.Equals("/Atoms.svg")
+                   && !context.Request.Path.Value.Equals("/health")
                     )
                 {
                     if (context.Request.Path.StartsWithSegments(pathRootPath))
@@ -200,6 +204,11 @@ namespace Atoms.Time
             app.UseRouting();
             app.UseAuthorization();
 
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHealthChecks("/health");
+            });
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
