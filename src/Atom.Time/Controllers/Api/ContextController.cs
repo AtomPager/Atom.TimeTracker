@@ -23,7 +23,7 @@ namespace Atom.Time.Controllers.Api
         public async ValueTask<ActionResult<ContextResponse>> Get()
         {
             var userName = this.GetUserName();
-            var user = await _context.Persons.FirstOrDefaultAsync(p => p.Name == userName);
+            var user = await _context.Persons.FirstOrDefaultAsync(p => p.UserName == userName);
 
             var isTimeSheetUser = User.IsInRole(AppRoles.TimeSheet);
 

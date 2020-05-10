@@ -13,11 +13,11 @@ SELECT TimePeriods.Id
 	 , PeriodEndDate
 	 , WorkDays
 	 , IIF(PeriodEndDate < GetUtcDate(), 'Prior', IIF(PeriodStartDate >GetUtcDate(), 'Future', 'Current')) AS [Status]
-	 , [NotStarted]
-	 , [NotSubmitted]
-	 , [Complete]
+	 , ISNULL([NotStarted],0) AS [NotStarted]
+	 , ISNull([NotSubmitted],0) AS [NotSubmitted]
+	 , ISNULL([Complete],0) as [Complete]
 FROM TimePeriods
-CROSS APPLY
+OUTER APPLY
 (
 SELECT ISNULL([NotStarted],0) AS [NotStarted], ISNULL([NotSubmitted],0) AS [NotSubmitted], ISNULL([Complete],0) as [Complete] FROM 
 (

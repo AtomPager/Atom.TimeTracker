@@ -51,7 +51,7 @@ export class TimeSheetIndex extends Component {
 
     async populateTimePeriodData(showAll) {
         axios
-            .get('api/TimeSheet', { params: { showAll } })
+            .get('api/TimeSheets', { params: { showAll } })
             .then((response) => {
                 const data = response.data;
                 this.setState({ timeSheets: data, loading: false });
