@@ -42,11 +42,12 @@ namespace Atom.Time
 
             if ("AzureAd".Equals(authProvider, StringComparison.OrdinalIgnoreCase))
             {
-                services.AddAuthentication(options =>
-                        {
-                            options.DefaultAuthenticateScheme = AzureADDefaults.AuthenticationScheme;
-                            options.DefaultChallengeScheme = AzureADDefaults.AuthenticationScheme;
-                        })
+                services
+                    .AddAuthentication(options =>
+                    {
+                        options.DefaultAuthenticateScheme = AzureADDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = AzureADDefaults.AuthenticationScheme;
+                    })
                     .AddAzureAD(options =>
                     {
                         options.Instance = "https://login.microsoftonline.com/";
@@ -74,6 +75,12 @@ namespace Atom.Time
                     .AddCookie()
                     .AddOpenIdConnect(o => Configuration.Bind("OpenId", o));
             }
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AuthPolicy.Administrator, policy => policy.RequireAuthenticatedUser().RequireRole(AppRoles.Administrator));
+                options.AddPolicy(AuthPolicy.TimeSheet, policy => policy.RequireAuthenticatedUser().RequireRole(AppRoles.TimeSheet, AppRoles.Administrator));
+            });
 
             services.AddControllersWithViews();
 

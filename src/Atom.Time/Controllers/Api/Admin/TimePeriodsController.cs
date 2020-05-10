@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Atom.Time.Database;
 using Atom.Time.Database.Views;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +13,7 @@ namespace Atom.Time.Controllers.Api.Admin
 {
     [Route("api/admin/[controller]")]
     [ApiController]
-    // TODO: Add check for Admin Role.
+    [Authorize(AuthPolicy.Administrator)]
     public class TimePeriodsController : ControllerBase
     {
         private readonly TimeSheetContext _context;

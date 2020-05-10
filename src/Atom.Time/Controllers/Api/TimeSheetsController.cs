@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Atom.Time.Database;
 using Atom.Time.Database.Views;
 using Atom.Time.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ namespace Atom.Time.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(AuthPolicy.TimeSheet)]
     public class TimeSheetsController : ControllerBase
     {
         private readonly TimeSheetContext _context;
@@ -45,12 +47,16 @@ namespace Atom.Time.Controllers.Api
             var timeSheet = await _context.TimeSheets
                 .AsNoTracking()
                 .Include(t => t.TimePeriod)
+                .Include(t => t.Person)
                 .Include(t => t.Entries)
                 .ThenInclude(t => t.Project)
                 .FirstOrDefaultAsync(t => t.Id == id); 
-            // TODO: Add permission so only the person and their managers can see the time sheet.
-
+            
             if (timeSheet == null)
+                return NotFound();
+
+            if (!this.GetUserName().Equals(timeSheet.Person.UserName, StringComparison.OrdinalIgnoreCase)
+                && !this.User.IsInRole(AppRoles.Administrator))
                 return NotFound();
 
             return Ok(timeSheet);
@@ -127,6 +133,7 @@ namespace Atom.Time.Controllers.Api
         }
 
         [HttpPost("{id}/reject")]
+        [Authorize(AuthPolicy.Administrator)]
         public async Task<ActionResult<TimeSheet>> RejectTimeSheet(int id)
         {
             // TODO: Check that the user has the rights to do this on this sheet.

@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Atom.Time.Database;
 using Atom.Time.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Atom.Time.Controllers.Api
 {
@@ -17,15 +20,31 @@ namespace Atom.Time.Controllers.Api
         }
 
         [HttpGet]
-        public ContextResponse Get()
+        public async ValueTask<ActionResult<ContextResponse>> Get()
         {
-	        return new ContextResponse
+            var userName = this.GetUserName();
+            var user = await _context.Persons.FirstOrDefaultAsync(p => p.Name == userName);
+
+            var isTimeSheetUser = User.IsInRole(AppRoles.TimeSheet);
+
+            // ReSharper disable once InvertIf, makes the code much harder to work with.
+            if (user == null && isTimeSheetUser)
+            {
+                user = new Person
+                    {UserName = userName, Name = this.User.FindFirst("name")?.Value, StartDate = DateTime.Now.Date};
+                await _context.Persons.AddAsync(user);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new ContextResponse
 	        {
 		        Name = this.User.FindFirst("name")?.Value,
-		        User = this.GetUserName(),
-		        IsTimeSheetUser = User.IsInRole(AppRoles.TimeSheet), 
+		        User = userName,
+                IsActive = user?.IsActive ?? false,
+                StartDate = user?.IsActive == true ? user?.StartDate : (DateTime?)null,
+		        IsTimeSheetUser = isTimeSheetUser, 
 		        IsAdmin = User.IsInRole(AppRoles.Administrator)
-	        };
+	        });
         }
 
 #if DEBUG
@@ -56,6 +75,16 @@ namespace Atom.Time.Controllers.Api
             public string User { get; set; }
             public bool IsTimeSheetUser { get; set; }
             public bool IsAdmin { get; set; }
+            
+            /// <summary>
+            /// Indicates if the user is active and is required to complete time sheets.
+            /// </summary>
+            public bool IsActive { get; set; }
+
+            /// <summary>
+            /// The start date the user is required to fill out time sheets for, if they are active.
+            /// </summary>
+            public DateTime? StartDate { get; set; }
         }
     }
 }

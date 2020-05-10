@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Atom.Time.Database;
 using Atom.Time.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ namespace Atom.Time.Controllers.Api
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(AuthPolicy.TimeSheet)]
     public class ProjectsController : ControllerBase
     {
         private readonly TimeSheetContext _context;
