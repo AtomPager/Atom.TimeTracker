@@ -9,14 +9,14 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get install --yes nodejs
 WORKDIR /src
-COPY ["/src/Atom.Time/", "Atom.Time/"]
-RUN dotnet restore "Atom.Time/Atom.Time.csproj"
+COPY ["/src/Atoms.Time/", "Atoms.Time/"]
+RUN dotnet restore "Atoms.Time/Atoms.Time.csproj"
 ##COPY . .
-WORKDIR "/src/Atom.Time"
-RUN dotnet build "Atom.Time.csproj" -c Release -o /app/build
+WORKDIR "/src/Atoms.Time"
+RUN dotnet build "Atoms.Time.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Atom.Time.csproj" -c Release -o /app/publish
+RUN dotnet publish "Atoms.Time.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
