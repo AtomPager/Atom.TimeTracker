@@ -34,7 +34,7 @@ export class TimeSheetDetail extends Component {
 
         const { timeSheetId } = this.props.match.params;
         axios
-            .get(`api/TimeSheet/${timeSheetId}`)
+            .get(`api/TimeSheets/${timeSheetId}`)
             .then((r) => {
                 const timeSheet = r.data;
 
@@ -100,7 +100,7 @@ export class TimeSheetDetail extends Component {
         this.setState({ saving: true, hasChanged: false });
 
         try {
-            const res = await axios.post(`api/TimeSheet/${timeSheetId}`, { entries: values });
+            const res = await axios.post(`api/TimeSheets/${timeSheetId}`, { entries: values });
             console.log(res);
             if (updateState) {
                 this.setState({ saving: false });
@@ -121,7 +121,7 @@ export class TimeSheetDetail extends Component {
         this.setState({ saving: true, hasChanged: false });
 
         try {
-            const res = await axios.post(`api/TimeSheet/${timeSheetId}/submit`);
+            const res = await axios.post(`api/TimeSheets/${timeSheetId}/submit`);
             console.log(res);
             this.setState({ saving: false, submittedDateTime: res.data.submittedDateTime });
         } catch (error) {
@@ -162,7 +162,7 @@ export class TimeSheetDetail extends Component {
         }
 
         axios
-            .post(`api/TimeSheet/${timeSheetId}/entries`, {})
+            .post(`api/TimeSheets/${timeSheetId}/entries`, {})
             .then((res) => {
                 console.log(res);
                 let entries = [...this.state.entries];
@@ -182,7 +182,7 @@ export class TimeSheetDetail extends Component {
         }
 
         axios
-            .delete(`api/TimeSheet/${timeSheetId}/entries/${e.id}`, {})
+            .delete(`api/TimeSheets/${timeSheetId}/entries/${e.id}`, {})
             .then((res) => {
                 console.log(res);
                 let entries = [...this.state.entries];

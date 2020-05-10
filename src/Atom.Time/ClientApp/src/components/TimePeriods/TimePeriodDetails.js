@@ -53,7 +53,7 @@ export class TimePeriodDetails extends Component {
 
     handleResetTimeSheetClick = (person) => {
         axios
-            .post(`api/TimeSheet/${person.timeSheetId}/reject`)
+            .post(`api/TimeSheets/${person.timeSheetId}/reject`)
             .then((r) => {
                 var persons = [...this.state.persons];
                 var personIndex = persons.indexOf(person);

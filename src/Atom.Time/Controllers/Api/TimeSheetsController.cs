@@ -12,11 +12,11 @@ namespace Atom.Time.Controllers.Api
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TimeSheetController : ControllerBase
+    public class TimeSheetsController : ControllerBase
     {
         private readonly TimeSheetContext _context;
 
-        public TimeSheetController(TimeSheetContext context)
+        public TimeSheetsController(TimeSheetContext context)
         {
             _context = context;
         }

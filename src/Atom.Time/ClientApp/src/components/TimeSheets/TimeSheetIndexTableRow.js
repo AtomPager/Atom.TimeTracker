@@ -9,7 +9,7 @@ export class TimeSheetIndexTableRow extends Component {
         this.setState({ working: true });
 
         axios
-            .post('api/timesheet/', { timePeriodId: this.props.timeSheet.timePeriodId })
+            .post('api/TimeSheets/', { timePeriodId: this.props.timeSheet.timePeriodId })
             .then((r) => {
                 console.log(r);
                 this.setState({ timeSheetId: r.data.id });
