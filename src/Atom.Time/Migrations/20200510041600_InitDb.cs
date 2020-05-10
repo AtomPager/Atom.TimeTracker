@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Atom.Time.Migrations
 {
-    public partial class initdb : Migration
+    public partial class InitDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,7 +17,7 @@ namespace Atom.Time.Migrations
                     Name = table.Column<string>(maxLength: 100, nullable: true),
                     IsAdmin = table.Column<bool>(nullable: false),
                     IsActive = table.Column<bool>(nullable: false),
-                    StartDate = table.Column<DateTime>(nullable: false, defaultValueSql: "GetUtcDate()")
+                    StartDate = table.Column<DateTime>(type: "DATE", nullable: false, defaultValueSql: "GetUtcDate()")
                 },
                 constraints: table =>
                 {
@@ -32,7 +32,9 @@ namespace Atom.Time.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(maxLength: 150, nullable: false),
                     IsRnD = table.Column<bool>(nullable: false),
-                    IsObsolete = table.Column<bool>(nullable: false)
+                    Group = table.Column<string>(nullable: true),
+                    Classification = table.Column<string>(nullable: true),
+                    IsArchived = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -40,18 +42,18 @@ namespace Atom.Time.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TimePeriod",
+                name: "TimePeriods",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PeriodStartDate = table.Column<DateTime>(nullable: false),
-                    PeriodEndDate = table.Column<DateTime>(nullable: false),
+                    PeriodStartDate = table.Column<DateTime>(type: "DATE", nullable: false),
+                    PeriodEndDate = table.Column<DateTime>(type: "DATE", nullable: false),
                     WorkDays = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TimePeriod", x => x.Id);
+                    table.PrimaryKey("PK_TimePeriods", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -60,9 +62,9 @@ namespace Atom.Time.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    SubmittedDateTime = table.Column<DateTimeOffset>(nullable: true),
                     TimePeriodId = table.Column<int>(nullable: false),
-                    PersonId = table.Column<int>(nullable: false),
-                    SubmittedDateTime = table.Column<DateTime>(nullable: true)
+                    PersonId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -74,9 +76,9 @@ namespace Atom.Time.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_TimeSheets_TimePeriod_TimePeriodId",
+                        name: "FK_TimeSheets_TimePeriods_TimePeriodId",
                         column: x => x.TimePeriodId,
-                        principalTable: "TimePeriod",
+                        principalTable: "TimePeriods",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -87,8 +89,8 @@ namespace Atom.Time.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    ProjectId = table.Column<int>(nullable: true),
                     TimeSheetId = table.Column<int>(nullable: false),
-                    ProjectId = table.Column<int>(nullable: false),
                     Note = table.Column<string>(nullable: true),
                     Value = table.Column<double>(nullable: false),
                     PercentOfPeriod = table.Column<double>(nullable: false)
@@ -138,9 +140,10 @@ namespace Atom.Time.Migrations
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TimeSheets_TimePeriodId",
+                name: "IX_TimeSheets_TimePeriodId_PersonId",
                 table: "TimeSheets",
-                column: "TimePeriodId");
+                columns: new[] { "TimePeriodId", "PersonId" },
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -158,7 +161,7 @@ namespace Atom.Time.Migrations
                 name: "Persons");
 
             migrationBuilder.DropTable(
-                name: "TimePeriod");
+                name: "TimePeriods");
         }
     }
 }

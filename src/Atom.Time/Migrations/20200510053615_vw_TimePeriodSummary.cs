@@ -6,8 +6,7 @@ namespace Atom.Time.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder
-                .Sql(@"
+            migrationBuilder.Sql(@"
 CREATE VIEW vw_TimePeriodSummary AS
 SELECT TimePeriods.Id
 	 , PeriodStartDate
@@ -45,6 +44,6 @@ PIVOT(
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"DROP VIEW vw_TimePeriodSummary");
-        }
+		}
     }
 }

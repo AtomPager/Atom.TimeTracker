@@ -17,6 +17,7 @@ CROSS APPLY(
 	LEFT JOIN TimeSheets ON TimeSheets.PersonId = Persons.Id AND TimeSheets.TimePeriodId = TimePeriods.Id
 	WHERE TimePeriods.PeriodStartDate >= Persons.StartDate OR (TimeSheets.Id IS NOT NULL AND SubmittedDateTime IS NOT NULL)
 ) AS TP");
+
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
