@@ -1,14 +1,64 @@
-# Atom Time Tracker
+# Atom's Time Tracker
 
-With all things Atom, the goal is to create an open-source, free to use tool that addresses only the most basic of needs.
+With all things Atom, the goal is to create an open-source, free to use tool aimed at simplifying the lives of the technologist.  You can kill your self with overbearing processes, but to maintain a complex system, you must be well informed.  Working your way from startups with you and a few close friends to the large enterprise consulting engagements, you inevitably find your self at the point that you need to do some form of time accounting.
 
-Atom Time tracking is no different.  After leading everything from large enterprise consulting engagements, to startups with you and a few close friends, you inevitably find your self at the point that you need to do some form of time accounting.  There are a ton of tools on the market for timesheets, why would create yet another one?  When running a small and nimble team of highly skilled and creative individuals, that last thing we wanted to do is demand everyone track their time down to the 15-minute interval, but at times you still find management requiring something from you.  
+There are a ton of tools on the market for timesheets, why would I create yet another one?  The gap I see, everything out there is working to track time down to the hour or even the minute.  In most cases, that is what you need, and if you are here looking for a time tracking tool, I would recommend you look at the other tools out there, and try one first.  If you can make tracking by the hour or minute work, you should.
 
-Our approach is not tracking hours at all, but to allow each member to select their unit of chose, and then compute a relative time spend by each person on each project.  Letting each person operate on how they work best, and can still generate those beloved KPIs to management.
+But, some times tracking time down to the minute, sucks the life out of a team. So as long as you don't need time tracking for the accountants, why not allow each member to select their unit of choice and then compute a relative time spent by each person on each project.  Letting each person operate how they work best, and can still generate managements beloved KPIs.
 
 # Requirements
 
 I am running this with Azure Web Apps, and Azure SQL.  This is the only way I am going to test this code; your mileage may vary.
+
+Currently only Azure AD has been test, while it may be posable other OpenID providers could work, I have not tested it.
+
+There are a few role that must exist, and they must be included in the OpenID tokens.
+
+For AzureAD they are (see AzureAd/AppManifest_Sample.json for a sample application mmanifest)
+
+```JSON
+"appRoles": [
+        {
+            "allowedMemberTypes": ["User"],
+            "description": "User who can create time periods and manage projects",
+            "displayName": "Administrators",
+            "id": "253bf5c5-eafd-4e3f-a0d1-170019b7da9d",
+            "isEnabled": true,
+            "lang": null,
+            "origin": "Application",
+            "value": "Admin"
+        },
+        {
+            "allowedMemberTypes": ["User"],
+            "description": "User who can submitt time Sheets",
+            "displayName": "Time Sheet",
+            "id": "2b33f772-0cb8-4abd-9dfe-4cfa16f037a7",
+            "isEnabled": true,
+            "lang": null,
+            "origin": "Application",
+            "value": "TimeSheet"
+        }
+    ]
+```
+
+# Docker Image
+
+Atom's Time is available via a Docker image
+
+```docker push atomsproject/atomstime:latest```
+
+## Tags:
+
+- latest : Stable build
+- beta : may still have some bugs to work out, but should be mostly working
+- dev : Work in progress, most probably will have bugs ang brake things.
+
+## Enviroment Vars
+
+- ConnectionStrings__SqlDbConnection : MSSQL connection String
+- AzureAd__Domain : Your Azure AD domain name
+- AzureAd__TenantId : Your Azure AD Tenant ID (GUILD)
+- AzureAd__ClientId : The Client ID from the Azure AD Application
 
 # Note to the wise
 
