@@ -12,22 +12,21 @@ export class ProjectIndex extends Component {
         this.populateProjectData();
     }
 
-    static renderTableRow(project) {
+    renderTableRow = (project) => {
         const viewUrl = `/projects/${project.id}`;
+        const projectName = this.props.userContext.isAdmin ? <Link to={viewUrl}>{project.name}</Link> : project.name;
         return (
             <tr key={project.id}>
-                <td>
-                    <Link to={viewUrl}>{project.name}</Link>
-                </td>
+                <td>{projectName}</td>
                 <td>{project.classification}</td>
                 <td>{project.group}</td>
                 <td>{project.isRnD ? '✔️' : ''}</td>
                 <td>{project.isArchived ? '✔️' : ''}</td>
             </tr>
         );
-    }
+    };
 
-    static renderTable(projects) {
+    renderTable = (projects) => {
         return (
             <table className="table table-striped" aria-labelledby="tabelLabel">
                 <thead>
@@ -39,10 +38,10 @@ export class ProjectIndex extends Component {
                         <th>Archived</th>
                     </tr>
                 </thead>
-                <tbody>{projects.map((project) => ProjectIndex.renderTableRow(project))}</tbody>
+                <tbody>{projects.map((project) => this.renderTableRow(project))}</tbody>
             </table>
         );
-    }
+    };
 
     render() {
         let contents = this.state.loading ? (
@@ -50,7 +49,7 @@ export class ProjectIndex extends Component {
                 <em>Loading...</em>
             </p>
         ) : (
-            ProjectIndex.renderTable(this.state.projects)
+            this.renderTable(this.state.projects)
         );
 
         return <div>{contents}</div>;

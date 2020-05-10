@@ -14,18 +14,18 @@ export class TimePeriods extends Component {
                     <span className="float-right">
                         <Switch>
                             <Route
-                                path="/time-periods"
+                                path="/timePeriods"
                                 exact
                                 render={() => (
-                                    <Link to="/time-periods/create" className="btn btn-primary btn-sm">
+                                    <Link to="/timePeriods/create" className="btn btn-primary btn-sm">
                                         Create
                                     </Link>
                                 )}
                             />
                             <Route
-                                path="/time-periods/:timePeriodId/timesheets/:timeSheetId"
+                                path="/timePeriods/:timePeriodId/timesheets/:timeSheetId"
                                 render={(props) => {
-                                    const link = `/time-periods/${props.match.params.timePeriodId}`;
+                                    const link = `/timePeriods/${props.match.params.timePeriodId}`;
                                     return (
                                         <Link to={link} className="btn btn-outline-secondary btn-sm">
                                             Back
@@ -34,9 +34,9 @@ export class TimePeriods extends Component {
                                 }}
                             />
                             <Route
-                                path="/time-periods"
+                                path="/timePeriods"
                                 render={() => (
-                                    <Link to="/time-periods" className="btn btn-outline-secondary btn-sm">
+                                    <Link to="/timePeriods" className="btn btn-outline-secondary btn-sm">
                                         close
                                     </Link>
                                 )}
@@ -45,10 +45,10 @@ export class TimePeriods extends Component {
                     </span>
                 </h1>
                 <Switch>
-                    <Route path="/time-periods/create" component={TimePeriodCreate} />
-                    <Route path="/time-periods/:timePeriodId/timesheets/:timeSheetId" render={(prop) => <TimeSheetDetail {...prop} readOnly={true} />} />
-                    <Route path="/time-periods/:timePeriodId" component={TimePeriodDetails} />
-                    <Route path="/time-periods" component={TimePeriodIndex} />
+                    <Route path="/timePeriods/create" component={TimePeriodCreate} />
+                    <Route path="/timePeriods/:timePeriodId/timesheets/:timeSheetId" render={(prop) => <TimeSheetDetail {...prop} readOnly={true} />} />
+                    <Route path="/timePeriods/:timePeriodId" component={TimePeriodDetails} />
+                    <Route path="/timePeriods" component={TimePeriodIndex} />
                 </Switch>
             </div>
         );

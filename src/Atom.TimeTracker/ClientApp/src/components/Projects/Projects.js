@@ -10,32 +10,34 @@ export class Projects extends Component {
             <div>
                 <h1>
                     Projects
-                    <span className="float-right">
-                        <Switch>
-                            <Route
-                                path="/projects"
-                                exact
-                                render={() => (
-                                    <Link to="/projects/create" className="btn btn-primary btn-sm">
-                                        Create
-                                    </Link>
-                                )}
-                            />
-                            <Route
-                                path="/projects"
-                                render={() => (
-                                    <Link to="/projects" className="btn btn-outline-secondary btn-sm">
-                                        close
-                                    </Link>
-                                )}
-                            />
-                        </Switch>
-                    </span>
+                    {this.props.userContext.isAdmin && (
+                        <span className="float-right">
+                            <Switch>
+                                <Route
+                                    path="/projects"
+                                    exact
+                                    render={() => (
+                                        <Link to="/projects/create" className="btn btn-primary btn-sm">
+                                            Create
+                                        </Link>
+                                    )}
+                                />
+                                <Route
+                                    path="/projects"
+                                    render={() => (
+                                        <Link to="/projects" className="btn btn-outline-secondary btn-sm">
+                                            close
+                                        </Link>
+                                    )}
+                                />
+                            </Switch>
+                        </span>
+                    )}
                 </h1>
                 <Switch>
                     <Route path="/projects/create" component={ProjectCreate} />
                     <Route path="/projects/:projectId" component={ProjectEdit} />
-                    <Route path="/projects" component={ProjectIndex} />
+                    <Route path="/projects" render={(props) => <ProjectIndex {...props} userContext={this.props.userContext} />} />
                 </Switch>
             </div>
         );

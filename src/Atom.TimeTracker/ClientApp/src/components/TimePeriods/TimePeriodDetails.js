@@ -67,7 +67,7 @@ export class TimePeriodDetails extends Component {
     };
 
     renderTableRow = (person) => {
-        const viewUrl = `/time-periods/${this.state.timePeriodId}/timesheets/${person.timeSheetId}`;
+        const viewUrl = `/timePeriods/${this.state.timePeriodId}/timesheets/${person.timeSheetId}`;
         return (
             <tr key={person.id}>
                 {person.timeSheetId ? (

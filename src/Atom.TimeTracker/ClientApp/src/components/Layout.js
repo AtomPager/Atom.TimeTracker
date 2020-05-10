@@ -8,7 +8,7 @@ export class Layout extends Component {
     render() {
         return (
             <div>
-                <NavMenu />
+                <NavMenu userContext={this.props.userContext} />
                 <Container>{this.props.children}</Container>
                 <footer>
                     Powered by{' '}

@@ -13,7 +13,7 @@ export class TimePeriodIndex extends Component {
     }
 
     static renderTableRow(timePeriod) {
-        const viewUrl = `/time-periods/${timePeriod.id}`;
+        const viewUrl = `/timePeriods/${timePeriod.id}`;
         let classes = '';
 
         if (timePeriod.status === 'Current') {
