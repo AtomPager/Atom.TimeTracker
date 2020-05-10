@@ -13,7 +13,7 @@ export class Layout extends Component {
                 <footer>
                     Powered by{' '}
                     <a className="badge badge-light" href="https://github.com/AtomPager/Atom.TimeTracker">
-                        Atom Time Tracker
+                        Atom Time
                     </a>
                 </footer>
             </div>

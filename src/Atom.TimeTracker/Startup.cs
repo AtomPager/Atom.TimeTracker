@@ -38,20 +38,20 @@ namespace Atom.TimeTracker
             services.AddAntiforgery(options => { options.HeaderName = "X-XSRF-TOKEN"; });
 
             var authProvider = Configuration.GetValue<string>("AuthenticationProvider");
-            
-            
+
+
             if ("AzureAd".Equals(authProvider, StringComparison.OrdinalIgnoreCase))
             {
-	            services.AddAuthentication(options =>
-		                {
-			                options.DefaultAuthenticateScheme = AzureADDefaults.AuthenticationScheme;
-			                options.DefaultChallengeScheme = AzureADDefaults.AuthenticationScheme;
-		                })
+                services.AddAuthentication(options =>
+                        {
+                            options.DefaultAuthenticateScheme = AzureADDefaults.AuthenticationScheme;
+                            options.DefaultChallengeScheme = AzureADDefaults.AuthenticationScheme;
+                        })
                     .AddAzureAD(options =>
                     {
-	                    options.Instance = "https://login.microsoftonline.com/";
-	                    options.CallbackPath = "/signin-oidc";
-	                    options.SignedOutCallbackPath = "/signout-oidc";
+                        options.Instance = "https://login.microsoftonline.com/";
+                        options.CallbackPath = "/signin-oidc";
+                        options.SignedOutCallbackPath = "/signout-oidc";
                         Configuration.Bind("AzureAd", options);
                     });
             }
@@ -88,7 +88,7 @@ namespace Atom.TimeTracker
                 .AddJsonOptions(
                 options =>
                 {
-	                options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
 
                 }).ConfigureApiBehaviorOptions(options =>
                 {
@@ -131,29 +131,33 @@ namespace Atom.TimeTracker
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            
+
             app.UseAuthentication();
-            
+
             // This will force the Auth on all the request including the SPA.
             // UseAuthorization() is not sending the Challenge for SPA content.
             // Also, We want to return 401 not a redirect for our APIs.
             app.Use(async (context, next) =>
             {
-	            if (!context.User.Identity.IsAuthenticated && !context.Request.Path.Value.Equals("/manifest.json"))
-	            {
-		            if (context.Request.Path.StartsWithSegments(pathRootPath))
-		            {
-			            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-			            await context.Response.CompleteAsync();
-			            return;
-		            }
+                if (!context.User.Identity.IsAuthenticated
+                   && !context.Request.Path.Value.Equals("/manifest.json")
+                   && !context.Request.Path.Value.Equals("/favicon.ico")
+                   && !context.Request.Path.Value.Equals("/atom.svg")
+                    )
+                {
+                    if (context.Request.Path.StartsWithSegments(pathRootPath))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        await context.Response.CompleteAsync();
+                        return;
+                    }
 
-		            await context.ChallengeAsync(AzureADDefaults.AuthenticationScheme);
-	            }
-	            else
-	            {
-		            await next();
-	            }
+                    await context.ChallengeAsync(AzureADDefaults.AuthenticationScheme);
+                }
+                else
+                {
+                    await next();
+                }
             });
 
             app.UseSpaStaticFiles();
