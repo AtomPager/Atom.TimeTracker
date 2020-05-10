@@ -10,9 +10,9 @@ But, some times tracking time down to the minute, sucks the life out of a team. 
 
 I am running this with Azure Web Apps, and Azure SQL.  This is the only way I am going to test this code; your mileage may vary.
 
-Currently only Azure AD has been test, while it may be posable other OpenID providers could work, I have not tested it.
+Currently only Azure AD has been test, while it may be posable other OpenID Connect providers could work, I have not tested it.
 
-There are a few role that must exist, and they must be included in the OpenID tokens.
+There are a few role that must exist, and they must be included in the OpenID Connect tokens.
 
 For AzureAD they are (see AzureAd/AppManifest_Sample.json for a sample application mmanifest)
 
@@ -50,15 +50,15 @@ Atom's Time is available via a Docker image
 ## Tags:
 
 - latest : Stable build
-- beta : may still have some bugs to work out, but should be mostly working
-- dev : Work in progress, most probably will have bugs ang brake things.
+- beta : May still have some bugs to work out, but should be mostly working
+- dev : Work in progress, most probably will have bugs and will probably brake things.
 
 ## Enviroment Vars
 
 - ConnectionStrings__SqlDbConnection : MSSQL connection String
 - AzureAd__Domain : Your Azure AD domain name
 - AzureAd__TenantId : Your Azure AD Tenant ID (GUILD)
-- AzureAd__ClientId : The Client ID from the Azure AD Application
+- AzureAd__ClientId : The Client ID from the Azure AD Application (GUID)
 
 # Note to the wise
 
