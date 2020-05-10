@@ -15,7 +15,7 @@ CROSS APPLY(
 	SELECT TimePeriods.Id as TimePeriodId, PeriodStartDate, PeriodEndDate, WorkDays, TimeSheets.Id as TimeSheetId, TimeSheets.SubmittedDateTime
 	FROM TimePeriods
 	LEFT JOIN TimeSheets ON TimeSheets.PersonId = Persons.Id AND TimeSheets.TimePeriodId = TimePeriods.Id
-	WHERE TimePeriods.PeriodStartDate >= Persons.StartDate OR (TimeSheets.Id IS NOT NULL AND SubmittedDateTime IS NOT NULL)
+	WHERE TimePeriods.PeriodEndDate >= Persons.StartDate OR (TimeSheets.Id IS NOT NULL AND SubmittedDateTime IS NOT NULL)
 ) AS TP");
 
         }

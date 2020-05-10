@@ -202,7 +202,7 @@ namespace Atom.Time.Controllers.Api
             if (timePeriod == null)
                 return BadRequest("Time Period specified was not found");
 
-            var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user && p.IsActive);
+            var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user);
             if (person == null)
             {
                 return BadRequest("Need to be an active user to create time sheets");

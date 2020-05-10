@@ -9,7 +9,7 @@ export class Home extends Component {
                 {this.props.userContext.isTimeSheetUser ? (
                     <React.Fragment>
                         <h2>Your recent and up coming time sheets</h2>
-                        <TimeSheetIndex />
+                        <TimeSheetIndex {...this.props} />
                     </React.Fragment>
                 ) : (
                     <React.Fragment>

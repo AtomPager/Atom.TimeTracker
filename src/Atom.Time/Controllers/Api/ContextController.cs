@@ -31,7 +31,7 @@ namespace Atom.Time.Controllers.Api
             if (user == null && isTimeSheetUser)
             {
                 user = new Person
-                    {UserName = userName, Name = this.User.FindFirst("name")?.Value, StartDate = DateTime.Now.Date};
+                    {UserName = userName, Name = this.User.FindFirst("name")?.Value, StartDate = DateTime.Now.Date, IsActive = true};
                 await _context.Persons.AddAsync(user);
                 await _context.SaveChangesAsync();
             }

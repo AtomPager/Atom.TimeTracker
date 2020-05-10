@@ -10,12 +10,7 @@ namespace Atom.Time.Database
         public string UserName { get; set; }
         public string Name { get; set; }
         [JsonIgnore] public List<TimeSheet> TimeSheets { get; set; }
-
-        /// <summary>
-        /// Indicates this person is an Administrator of the time sheet system and has extra roles the can perform.
-        /// </summary>
-        public bool IsAdmin { get; set; }
-
+        
         /// <summary>
         /// Indicates if this person should be actively filling out time sheets.
         /// </summary>
