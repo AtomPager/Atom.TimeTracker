@@ -1,0 +1,93 @@
+{
+	"id": "{Replace-With-Guid}",
+	"acceptMappedClaims": null,
+	"accessTokenAcceptedVersion": null,
+	"addIns": [],
+	"allowPublicClient": null,
+	"appId": "{Replace-With-Guid}",
+	"appRoles": [
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "User who can create time periods and manage projects",
+			"displayName": "Administrators",
+			"id": "253bf5c5-eafd-4e3f-a0d1-170019b7da9d",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "Admin"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "User who can submitt time Sheets",
+			"displayName": "Time Sheet",
+			"id": "2b33f772-0cb8-4abd-9dfe-4cfa16f037a7",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "TimeSheet"
+		}
+	],
+	"oauth2AllowUrlPathMatching": false,
+	"createdDateTime": "2020-05-09T20:19:39Z",
+	"groupMembershipClaims": "None",
+	"identifierUris": [],
+	"informationalUrls": {
+		"termsOfService": null,
+		"support": null,
+		"privacy": null,
+		"marketing": null
+	},
+	"keyCredentials": [],
+	"knownClientApplications": [],
+	"logoUrl": null,
+	"logoutUrl": "https://time.{Replace-With-your-Domain}/signout-oidc",
+	"name": "Atom.Time",
+	"oauth2AllowIdTokenImplicitFlow": true,
+	"oauth2AllowImplicitFlow": false,
+	"oauth2Permissions": [],
+	"oauth2RequirePostResponse": false,
+	"optionalClaims": {
+		"idToken": [],
+		"accessToken": [],
+		"saml2Token": []
+	},
+	"orgRestrictions": [],
+	"parentalControlSettings": {
+		"countriesBlockedForMinors": [],
+		"legalAgeGroupRule": "Allow"
+	},
+	"passwordCredentials": [],
+	"preAuthorizedApplications": [],
+	"publisherDomain": "{Replace-With-your-Domain}",
+	"replyUrlsWithType": [
+		{
+			"url": "https://time.{Replace-With-your-Domain}/signin-oidc",
+			"type": "Web"
+		}
+	],
+	"requiredResourceAccess": [
+		{
+			"resourceAppId": "00000003-0000-0000-c000-000000000000",
+			"resourceAccess": [
+				{
+					"id": "{Replace-With-Guid}",
+					"type": "Scope"
+				}
+			]
+		}
+	],
+	"samlMetadataUrl": null,
+	"signInUrl": null,
+	"signInAudience": "AzureADMyOrg",
+	"tags": [],
+	"tokenEncryptionKeyId": null,
+	"verifiedPublisher": {
+		"displayName": null,
+		"verifiedPublisherId": null,
+		"addedDateTime": null
+	}
+}
