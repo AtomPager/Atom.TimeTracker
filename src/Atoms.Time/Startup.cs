@@ -121,8 +121,6 @@ namespace Atoms.Time
 
             services.AddDbContext<TimeSheetContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("SqlDbConnection")));
-
-            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
