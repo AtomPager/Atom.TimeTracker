@@ -25,7 +25,7 @@ export class NavMenu extends Component {
         return (
             <header>
                 <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow mb-3" light>
-                    <Container>
+                    <div className="container-md">
                         <NavbarBrand tag={Link} to="/">
                             <img src="/icon.svg" alt="Atoms Time" className="mr-2 mb-1" style={{ width: '20px' }} />
                         </NavbarBrand>
@@ -56,7 +56,7 @@ export class NavMenu extends Component {
                                 )}
                             </ul>
                         </Collapse>
-                    </Container>
+                    </div>
                 </Navbar>
             </header>
         );
