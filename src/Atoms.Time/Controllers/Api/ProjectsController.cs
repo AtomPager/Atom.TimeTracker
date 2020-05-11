@@ -32,7 +32,11 @@ namespace Atoms.Time.Controllers.Api
             }
             else if (!showAll)
             {
-                q = q.Where(p => p.IsArchived == false && p.TimeSheetEntries.Any(s => s.TimeSheet.Person.UserName == this.GetUserName() && s.TimeSheet.TimePeriod.PeriodEndDate > DateTime.Now.AddMonths(-1)));
+                q = q.Where(p => p.IsArchived == false
+                                 && (p.ShowByDefault
+                                     || p.TimeSheetEntries.Any(s =>
+                                         s.TimeSheet.Person.UserName == this.GetUserName()
+                                         && s.TimeSheet.TimePeriod.PeriodEndDate > DateTime.Now.AddMonths(-1))));
             }
 
             return await q.OrderBy(p => p.Name).ToListAsync();
@@ -66,7 +70,10 @@ namespace Atoms.Time.Controllers.Api
             {
                 Name = content.Name,
                 IsRnD = content.IsRnD ?? false,
-                IsArchived = content.IsArchived ?? false
+                IsArchived = content.IsArchived ?? false,
+                Classification = content.Classification,
+                Group = content.Group,
+                ShowByDefault = this.User.IsInRole(AppRoles.Administrator) && content.ShowByDefault.HasValue && content.ShowByDefault.Value
             };
 
             await _context.Projects.AddAsync(project);
@@ -76,6 +83,7 @@ namespace Atoms.Time.Controllers.Api
         }
 
         [HttpPost("{id}")]
+        [Authorize(AuthPolicy.Administrator)]
         public async Task<IActionResult> PostUpdateProject(int id, [FromBody]ProjectContent content)
         {
             var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
@@ -119,6 +127,12 @@ namespace Atoms.Time.Controllers.Api
                 hasChange = true;
             }
 
+            if (content.ShowByDefault.HasValue)
+            {
+                project.ShowByDefault = content.ShowByDefault.Value;
+                hasChange = true;
+            }
+
             if (hasChange)
             {
                 await _context.SaveChangesAsync();
@@ -134,6 +148,7 @@ namespace Atoms.Time.Controllers.Api
             public bool? IsArchived { get; set; }
             public string Group { get; set; }
             public string Classification { get; set; }
+            public bool? ShowByDefault { get; set; }
         }
     }
 }

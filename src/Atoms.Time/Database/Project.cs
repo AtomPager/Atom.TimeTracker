@@ -26,6 +26,11 @@ namespace Atoms.Time.Database
         /// </remarks>
         public bool IsArchived { get; set; }
 
+        /// <summary>
+        /// Indicates that a project should be shown in the project dropdown unless the user is searching from something specific.
+        /// </summary>
+        public bool ShowByDefault { get; set; }
+
         [JsonIgnore] public List<TimeSheetEntry> TimeSheetEntries { get; set; }
     }
 }

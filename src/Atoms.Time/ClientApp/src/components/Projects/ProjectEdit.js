@@ -113,6 +113,7 @@ export class ProjectEdit extends Component {
 
     renderForm = () => {
         const project = this.state.project;
+        // TODO: Move this out to it's own class, and re-uew with the create pages.
         return (
             <div>
                 <form onSubmit={this.onSubmit}>
@@ -167,7 +168,24 @@ export class ProjectEdit extends Component {
                             given group.
                         </small>
                     </div>
+                    <div className="form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="showByDefault"
+                            aria-describedby="endDateHelp"
+                            onChange={this.handleChange}
+                            checked={project.showByDefault}
+                            name="showByDefault"
+                        />
+                        <label htmlFor="showByDefault" className="form-check-label">
+                            Show By Default {this.state.errors.showByDefault && <span className="badge badge-danger">{this.state.errors.showByDefault}</span>}
+                        </label>
 
+                        <small id="endDateHelp" className="form-text text-muted">
+                            Should be shown in the project dropdown, along with the persons recently used project, unless the user is searching from something specific
+                        </small>
+                    </div>
                     <div className="form-check">
                         <input
                             type="checkbox"

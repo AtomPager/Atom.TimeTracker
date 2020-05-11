@@ -20,6 +20,7 @@ export class ProjectIndex extends Component {
                 <td>{projectName}</td>
                 <td>{project.classification}</td>
                 <td>{project.group}</td>
+                <td>{project.showByDefault ? '✔️' : ''}</td>
                 <td>{project.isRnD ? '✔️' : ''}</td>
                 <td>{project.isArchived ? '✔️' : ''}</td>
             </tr>
@@ -34,6 +35,7 @@ export class ProjectIndex extends Component {
                         <th>Name</th>
                         <th>Classification</th>
                         <th>Group</th>
+                        <th>Show By Default</th>
                         <th>R&#x26;D</th>
                         <th>Archived</th>
                     </tr>

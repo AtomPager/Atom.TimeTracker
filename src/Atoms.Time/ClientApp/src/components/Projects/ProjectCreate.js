@@ -69,11 +69,12 @@ export class ProjectCreate extends Component {
 
     render() {
         const project = this.state.projectCreate;
+        // TODO: Move this out to it's own class, and re-uew with the edit pages.
         return (
             <div>
                 <form onSubmit={this.onSubmit}>
                     <div className="form-group">
-                        <label htmlFor="name">Start Date {this.state.errors.name && <span className="badge badge-danger">{this.state.errors.name}</span>}</label>
+                        <label htmlFor="name">Name {this.state.errors.name && <span className="badge badge-danger">{this.state.errors.name}</span>}</label>
                         <input
                             type="text"
                             className="form-control"
@@ -85,22 +86,96 @@ export class ProjectCreate extends Component {
                             name="name"
                         />
                         <small id="startDateHelp" className="form-text text-muted">
-                            The name for the new project.
+                            The short name of the project.
                         </small>
                     </div>
                     <div className="form-group">
-                        <label htmlFor="isRnD">is R&#x26;D {this.state.errors.isRnD && <span className="badge badge-danger">{this.state.errors.isRnD}</span>}</label>
+                        <label htmlFor="classification">
+                            Classification {this.state.errors.classification && <span className="badge badge-danger">{this.state.errors.classification}</span>}
+                        </label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="classification"
+                            aria-describedby="nameHelp"
+                            placeholder="Enter project classification"
+                            onChange={this.handleChange}
+                            value={project.classification}
+                            name="classification"
+                        />
+                        <small id="startDateHelp" className="form-text text-muted">
+                            The classification of the project.
+                        </small>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="group">Group {this.state.errors.group && <span className="badge badge-danger">{this.state.errors.group}</span>}</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="group"
+                            aria-describedby="nameHelp"
+                            placeholder="Enter project group"
+                            onChange={this.handleChange}
+                            value={project.group}
+                            name="group"
+                        />
+                        <small id="startDateHelp" className="form-text text-muted">
+                            The group or team that is responsable for this project. This is used when you want to know how much team each person is working on projects for a
+                            given group.
+                        </small>
+                    </div>
+                    <div className="form-check">
                         <input
                             type="checkbox"
-                            className="form-control"
+                            className="form-check-input"
+                            id="showByDefault"
+                            aria-describedby="endDateHelp"
+                            onChange={this.handleChange}
+                            checked={project.showByDefault}
+                            name="showByDefault"
+                        />
+                        <label htmlFor="showByDefault" className="form-check-label">
+                            Show By Default {this.state.errors.showByDefault && <span className="badge badge-danger">{this.state.errors.showByDefault}</span>}
+                        </label>
+
+                        <small id="endDateHelp" className="form-text text-muted">
+                            Should be shown in the project dropdown, along with the persons recently used project, unless the user is searching from something specific
+                        </small>
+                    </div>
+                    <div className="form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
                             id="isRnD"
                             aria-describedby="endDateHelp"
                             onChange={this.handleChange}
                             checked={project.isRnD}
                             name="isRnD"
                         />
+                        <label htmlFor="isRnD" className="form-check-label">
+                            is R&#x26;D {this.state.errors.isRnD && <span className="badge badge-danger">{this.state.errors.isRnD}</span>}
+                        </label>
+
                         <small id="endDateHelp" className="form-text text-muted">
-                            Is this project considered R&#x26;D?
+                            Is this project considered R&#x26;D for Tax purpuses?
+                        </small>
+                    </div>
+                    <div className="form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="isArchived"
+                            aria-describedby="endDateHelp"
+                            onChange={this.handleChange}
+                            checked={project.isArchived}
+                            name="isArchived"
+                        />
+                        <label htmlFor="isArchived" className="form-check-label">
+                            is Archived {this.state.errors.isArchived && <span className="badge badge-danger">{this.state.errors.isArchived}</span>}
+                        </label>
+
+                        <small id="endDateHelp" className="form-text text-muted">
+                            Is this project considered complete, and should no longer be listed in new time sheet?
                         </small>
                     </div>
                     <button type="submit" className="btn btn-primary">

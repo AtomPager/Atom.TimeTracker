@@ -29,9 +29,17 @@ export class NavMenu extends Component {
                         <NavbarBrand tag={Link} to="/">
                             <img src="/icon.svg" alt="Atoms Time" className="mr-2 mb-1" style={{ width: '20px' }} />
                         </NavbarBrand>
+
                         <NavbarToggler onClick={this.toggleNavbar} className="mr-2" />
                         <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
                             <ul className="navbar-nav flex-grow">
+                                {this.props.userContext.isTimeSheetUser && (
+                                    <NavItem>
+                                        <NavLink tag={Link} className="text-dark" to="/timeSheets">
+                                            Time Sheets
+                                        </NavLink>
+                                    </NavItem>
+                                )}
                                 {this.props.userContext.isAdmin && (
                                     <NavItem>
                                         <NavLink tag={Link} className="text-dark" to="/timePeriods">
@@ -41,16 +49,11 @@ export class NavMenu extends Component {
                                 )}
                                 {this.props.userContext.isTimeSheetUser && (
                                     <NavItem>
-                                        <NavLink tag={Link} className="text-dark" to="/timeSheets">
-                                            Time Sheets
+                                        <NavLink tag={Link} className="text-dark" to="/projects">
+                                            Projects
                                         </NavLink>
                                     </NavItem>
                                 )}
-                                <NavItem>
-                                    <NavLink tag={Link} className="text-dark" to="/projects">
-                                        Projects
-                                    </NavLink>
-                                </NavItem>
                             </ul>
                         </Collapse>
                     </Container>

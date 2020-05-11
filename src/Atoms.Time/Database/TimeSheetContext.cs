@@ -73,6 +73,10 @@ namespace Atoms.Time.Database
                 entity.HasKey(d => d.Id);
                 entity.Property(d => d.Name).HasMaxLength(150).IsRequired();
                 entity.HasIndex(d => d.Name).IsUnique();
+                entity.Property(d => d.ShowByDefault).HasDefaultValue(false);
+
+                entity.Property(d => d.Classification).HasMaxLength(150);
+                entity.Property(d => d.Group).HasMaxLength(150);
             });
 
             modelBuilder.Entity<Person>(entity =>
