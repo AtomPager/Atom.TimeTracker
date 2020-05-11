@@ -103,6 +103,10 @@ export class TimeSheetIndexTableRow extends Component {
         const viewUrl = `/timeSheets/${timeSheet.timeSheetId}`;
         const today = new Date();
         const startDate = new Date(timeSheet.periodStartDate);
+
+        const one_day = 1000 * 60 * 60 * 24;
+        const startIn = Math.ceil((startDate.getTime() - today.getTime()) / one_day);
+
         let status = 'future';
         let statusIcon = '⚪';
         if (timeSheet.submittedDateTime) {
@@ -120,7 +124,7 @@ export class TimeSheetIndexTableRow extends Component {
         } else if (timeSheet.dueInDays <= 10) {
             statusIcon = '🟢';
             status = 'up coming';
-        } else if (startDate - today < 5) {
+        } else if (startIn < 5) {
             statusIcon = '🟢';
             status = 'up coming';
         }
@@ -142,7 +146,7 @@ export class TimeSheetIndexTableRow extends Component {
                         )
                     )}
                 </td>
-                <td className="d-none d-md-table-cell">{startDate.toLocaleDateString()}</td>
+                <td className="d-none d-sm-table-cell">{startDate.toLocaleDateString()}</td>
                 <td>{new Date(timeSheet.periodEndDate).toLocaleDateString()}</td>
                 <td>
                     <span role="img" aria-label={status}>
