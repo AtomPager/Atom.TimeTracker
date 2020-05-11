@@ -28,7 +28,7 @@ export class ProjectIndex extends Component {
 
     renderTable = (projects) => {
         return (
-            <table className="table table-striped" aria-labelledby="tabelLabel">
+            <table className="table table-striped table-sm table-responsive-md" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
                         <th>Name</th>
