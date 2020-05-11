@@ -9,12 +9,14 @@ export class Layout extends Component {
         return (
             <div>
                 <NavMenu userContext={this.props.userContext} />
-                <Container>{this.props.children}</Container>
+                <div className="container-md">{this.props.children}</div>
                 <footer>
-                    Powered by{' '}
-                    <a className="badge badge-light" href="https://github.com/AtomsProject/Atoms.Time">
-                        Atoms Time
-                    </a>
+                    <div className="container-md">
+                        Powered by{' '}
+                        <a className="badge badge-light" href="https://github.com/AtomsProject/Atoms.Time">
+                            Atoms Time
+                        </a>
+                    </div>
                 </footer>
             </div>
         );
