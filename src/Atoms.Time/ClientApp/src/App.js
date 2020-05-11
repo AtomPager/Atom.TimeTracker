@@ -12,7 +12,7 @@ import './custom.css';
 export default class App extends Component {
     static displayName = App.name;
 
-    state = { userContext: {} };
+    state = { userContext: { loading: true } };
 
     componentDidMount() {
         this.populateUserContextData();
