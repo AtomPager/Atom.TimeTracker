@@ -140,12 +140,18 @@ namespace Atoms.Time
             }
 
             if (Configuration.GetValue("UseReverseProxy", false))
+            {
                 // This is needed if running behind a reverse proxy
                 app.UseForwardedHeaders(new ForwardedHeadersOptions
                 {
                     RequireHeaderSymmetry = false,
                     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
                 });
+                
+                // See https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-3.1#when-it-isnt-possible-to-add-forwarded-headers-and-all-requests-are-secure
+                // Encountering that issue when running in a container with Azure Web Apps
+                app.Use((context, next) => { context.Request.Scheme = "https"; return next(); });
+            }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
