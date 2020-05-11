@@ -13,27 +13,18 @@ code {
     border-color: #1861ac;
 }
 
-#root {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.content {
-    flex: 1 0 auto;
-    padding: 10px;
-}
-
 footer {
-    /* position: absolute;
+    /* Can't get position absolute to work when the hieght of the page is changing form React
+    position: absolute;
     bottom: 0;
-    width: 100%; */
+    width: 100%; 
     right: 0px;
+    flex-shrink: 0;
+    float: right;
+    */
     padding: 10px;
     padding-top: 15px;
     white-space: nowrap;
-    flex-shrink: 0;
-    float: right;
 }
 
 .partsInput {
