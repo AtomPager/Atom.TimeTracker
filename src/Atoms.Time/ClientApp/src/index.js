@@ -15,4 +15,5 @@ ReactDOM.render(
     rootElement
 );
 
-registerServiceWorker();
+//registerServiceWorker(); // TODO: Need to figure out Service Worker with Auth.
+unregister();
