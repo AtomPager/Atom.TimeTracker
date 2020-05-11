@@ -243,7 +243,7 @@ export class TimeSheetDetail extends Component {
     renderEntityRow = (entry) => {
         return (
             <tr key={entry.id}>
-                <td>{entry.project.name}</td>
+                <td>{entry.project && entry.project.name}</td>
                 <td>{entry.note}</td>
                 <td>{entry.value}</td>
                 <td>{entry.percentOfPeriod}</td>
