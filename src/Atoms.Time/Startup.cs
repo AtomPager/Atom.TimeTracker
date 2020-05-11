@@ -123,7 +123,9 @@ namespace Atoms.Time
                 options.UseSqlServer(Configuration.GetConnectionString("SqlDbConnection")));
         }
 
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "ASP0001:Authorization middleware is incorrectly configured.", Justification = "We want the health endpoint to not require Auth")]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAntiforgery antiForgery)
         {
             if (env.IsDevelopment())
@@ -209,13 +211,14 @@ namespace Atoms.Time
             });
 
             app.UseRouting();
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/health");
             });
-            
+
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
