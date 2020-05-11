@@ -125,7 +125,6 @@ namespace Atoms.Time
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "ASP0001:Authorization middleware is incorrectly configured.", Justification = "We want the health endpoint to not require Auth")]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAntiforgery antiForgery)
         {
             if (env.IsDevelopment())
@@ -212,15 +211,11 @@ namespace Atoms.Time
 
             app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapHealthChecks("/health");
-            });
-
             app.UseAuthorization();
-
+         
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
