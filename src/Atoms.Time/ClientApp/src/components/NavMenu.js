@@ -41,11 +41,18 @@ export class NavMenu extends Component {
                                     </NavItem>
                                 )}
                                 {this.props.userContext.isAdmin && (
-                                    <NavItem>
-                                        <NavLink tag={Link} className="text-dark" to="/timePeriods">
-                                            Periods
-                                        </NavLink>
-                                    </NavItem>
+                                    <React.Fragment>
+                                        <NavItem>
+                                            <NavLink tag={Link} className="text-dark" to="/timePeriods">
+                                                Periods
+                                            </NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink tag={Link} className="text-dark" to="/people">
+                                                People
+                                            </NavLink>
+                                        </NavItem>
+                                    </React.Fragment>
                                 )}
                                 {this.props.userContext.isTimeSheetUser && (
                                     <NavItem>

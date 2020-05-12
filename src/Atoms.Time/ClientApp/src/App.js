@@ -5,6 +5,8 @@ import { Home } from './components/Home';
 import { TimePeriods } from './components/TimePeriods/TimePeriods';
 import { Projects } from './components/Projects/Projects';
 import { TimeSheets } from './components/TimeSheets/TimeSheets';
+import { People } from './components/People/People';
+
 import axios from 'axios';
 
 import './custom.css';
@@ -27,6 +29,7 @@ export default class App extends Component {
                 <Route path="/timePeriods" component={TimePeriods} />
                 <Route path="/projects" render={(props) => <Projects {...props} userContext={this.state.userContext} />} />
                 <Route path="/timeSheets" component={TimeSheets} />
+                <Route path="/people" component={People} />
             </Layout>
         );
     }
