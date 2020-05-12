@@ -18,6 +18,7 @@ export class TimeSheetDetail extends Component {
         saving: false,
         hasChanged: false,
         projects: [],
+        sumOfValues: null
     };
 
     schema = {
@@ -42,7 +43,13 @@ export class TimeSheetDetail extends Component {
 
                 // Add a key field for internal tracking, as when we add new entried during editing, we will not have the Id to use as a key.
                 const entries = timeSheet.entries;
-                this.setState({ timeSheetId, submittedDateTime: timeSheet.submittedDateTime, entries, timePeriod: timeSheet.timePeriod, loading: false });
+                
+                let sumOfValues = 0;
+                entries.forEach((e) => {
+                    sumOfValues += e.value;
+                });
+
+                this.setState({ sumOfValues, timeSheetId, submittedDateTime: timeSheet.submittedDateTime, entries, timePeriod: timeSheet.timePeriod, loading: false });
             })
             .catch((error) => {
                 if (error.response) {
@@ -156,9 +163,10 @@ export class TimeSheetDetail extends Component {
         newValue[e.name] = e.type === 'number' ? Number(e.value) : e.value;
         entries[index] = newValue;
 
+        let sumOfValues = 0;
         if (e.name === 'value') {
             // Need to re-calculate the percentOfPeriod
-            let sumOfValues = 0;
+           
             entries.forEach((e) => {
                 sumOfValues += e.value;
             });
@@ -170,7 +178,7 @@ export class TimeSheetDetail extends Component {
             });
         }
 
-        this.setState({ entries, hasChanged: true });
+        this.setState({ entries, hasChanged: true, sumOfValues });
     };
 
     handleEntryCreate = () => {
@@ -270,7 +278,7 @@ export class TimeSheetDetail extends Component {
         );
     };
 
-    static renderHeading({ timePeriod, submittedDateTime }) {
+    renderHeading = ({ timePeriod, submittedDateTime }) => {
         var subDate = submittedDateTime && new Date(submittedDateTime).toLocaleDateString();
 
         return (
@@ -281,11 +289,15 @@ export class TimeSheetDetail extends Component {
                 </li>
                 <li>
                     <strong>Work days: </strong>
-                    {timePeriod.workDays}
+                    {timePeriod.workDays} | Est Hours: {timePeriod.workDays * 8} | 1 Days = {(1/timePeriod.workDays).toFixed(1)}%
                 </li>
                 <li>
                     <strong>Status: </strong>
                     {submittedDateTime ? `Submitted on ${subDate}` : 'Pending'}
+                </li>
+                <li>
+                    <strong>Sum of Poarts: </strong>
+                    {this.state.sumOfValues}
                 </li>
             </ul>
         );
@@ -318,7 +330,7 @@ export class TimeSheetDetail extends Component {
             <div className="alert alert-danger">{this.state.errorMsg}</div>
         ) : (
             <div>
-                {TimeSheetDetail.renderHeading(this.state)}
+                {this.renderHeading(this.state)}
                 <hr />
                 <div className="row">
                     <div className="col-4">
