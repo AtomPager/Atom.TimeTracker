@@ -28,7 +28,7 @@ namespace Atoms.Time.Controllers.Api
             IQueryable<Project> q = _context.Projects;
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                q = q.Where(p => p.Name.Contains(searchTerm) && p.IsArchived == false);
+                q = q.Where(p => (p.Name.Contains(searchTerm) ||  p.KeyWords.Contains(searchTerm)) && p.IsArchived == false);
             }
             else if (!showAll)
             {
@@ -73,6 +73,7 @@ namespace Atoms.Time.Controllers.Api
                 IsArchived = content.IsArchived ?? false,
                 Classification = content.Classification,
                 Group = content.Group,
+                KeyWords = content.KeyWords,
                 ShowByDefault = this.User.IsInRole(AppRoles.Administrator) && content.ShowByDefault.HasValue && content.ShowByDefault.Value
             };
 
@@ -94,13 +95,20 @@ namespace Atoms.Time.Controllers.Api
             content.Name = content.Name?.Trim();
 
             if (!string.IsNullOrWhiteSpace(content.Name)
-                && !content.Name.Equals(project.Name, StringComparison.OrdinalIgnoreCase))
+                && !content.Name.Equals(project.Name, StringComparison.InvariantCulture))
             {
-                if (await _context.Projects.AnyAsync(p => p.Name == content.Name))
+                if (await _context.Projects.AnyAsync(p => p.Name == content.Name && p.Id != id))
                     return Conflict("Project with this name already exists.");
 
                 project.Name = content.Name;
                 hasChange = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(content.KeyWords)
+                && !content.KeyWords.Equals(project.KeyWords, StringComparison.InvariantCulture))
+            {
+	            project.KeyWords = content.KeyWords;
+	            hasChange = true;
             }
 
             if (content.IsRnD.HasValue)
@@ -149,6 +157,7 @@ namespace Atoms.Time.Controllers.Api
             public string Group { get; set; }
             public string Classification { get; set; }
             public bool? ShowByDefault { get; set; }
+            public string KeyWords { get; set; }
         }
     }
 }

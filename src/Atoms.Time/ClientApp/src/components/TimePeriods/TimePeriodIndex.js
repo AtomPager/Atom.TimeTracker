@@ -29,7 +29,7 @@ export class TimePeriodIndex extends Component {
                         </span>
                     </Link>
                 </td>
-                <td className="d-none d-md-block">{new Date(timePeriod.periodStartDate).toLocaleDateString()}</td>
+                <td className="d-none d-md-table-cell">{new Date(timePeriod.periodStartDate).toLocaleDateString()}</td>
                 <td>{new Date(timePeriod.periodEndDate).toLocaleDateString()}</td>
                 <td>{timePeriod.workDays}</td>
                 <td>{timePeriod.notStarted}</td>
@@ -45,7 +45,7 @@ export class TimePeriodIndex extends Component {
                 <thead>
                     <tr>
                         <th></th>
-                        <th className="d-none d-md-block">Start Date</th>
+                        <th className="d-none d-md-table-cell">Start Date</th>
                         <th>End Date</th>
                         <th>Work Days</th>
                         <th>Not Started</th>

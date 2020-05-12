@@ -90,6 +90,22 @@ export class ProjectCreate extends Component {
                         </small>
                     </div>
                     <div className="form-group">
+                        <label htmlFor="keyWords">KeyWords {this.state.errors.keyWords && <span className="badge badge-danger">{this.state.errors.keyWords}</span>}</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="keyWords"
+                            aria-describedby="keyWordsHelp"
+                            placeholder="Enter project keyWords"
+                            onChange={this.handleChange}
+                            value={project.keyWords}
+                            name="keyWords"
+                        />
+                        <small id="keyWordsHelp" className="form-text text-muted">
+                            Keywords that are used when searching for projects in the timesheet.
+                        </small>
+                    </div>
+                    <div className="form-group">
                         <label htmlFor="classification">
                             Classification {this.state.errors.classification && <span className="badge badge-danger">{this.state.errors.classification}</span>}
                         </label>

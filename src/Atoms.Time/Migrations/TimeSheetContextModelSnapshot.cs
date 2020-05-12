@@ -72,6 +72,9 @@ namespace Atoms.Time.Migrations
                     b.Property<bool>("IsRnD")
                         .HasColumnType("bit");
 
+                    b.Property<string>("KeyWords")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(150)")
@@ -107,6 +110,9 @@ namespace Atoms.Time.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PeriodEndDate", "PeriodStartDate")
+                        .IsUnique();
 
                     b.ToTable("TimePeriods");
                 });

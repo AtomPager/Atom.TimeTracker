@@ -49,6 +49,7 @@ namespace Atoms.Time.Database
                 entity.HasKey(d => d.Id);
                 entity.Property(d => d.PeriodEndDate).HasColumnType("DATE").IsRequired();
                 entity.Property(d => d.PeriodStartDate).HasColumnType("DATE").IsRequired();
+                entity.HasIndex(d => new {d.PeriodEndDate, d.PeriodStartDate}).IsUnique();
             });
 
             modelBuilder.Entity<TimeSheetEntry>(entity =>

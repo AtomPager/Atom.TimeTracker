@@ -8,6 +8,8 @@ namespace Atoms.Time.Database
         public int Id { get; set; }
         public string Name { get; set; }
 
+        public string KeyWords { get; set; }
+
         /// <summary>
         /// Indicates that a project should be tracked as an Research and Development project
         /// </summary>
