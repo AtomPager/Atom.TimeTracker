@@ -81,7 +81,7 @@ export class TimeSheetDetail extends Component {
             if (this.timeout) {
                 clearTimeout(this.timeout);
             }
-            this.timeout = setTimeout(this.save, 4000, true);
+            this.timeout = setTimeout(this.save, 8000, true);
         }
     }
 
