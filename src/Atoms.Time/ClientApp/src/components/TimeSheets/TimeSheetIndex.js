@@ -113,19 +113,19 @@ export class TimeSheetIndexTableRow extends Component {
             statusIcon = '✔️';
             status = '';
         } else if (timeSheet.dueInDays <= -10) {
-            statusIcon = '⚠️';
+            statusIcon = '🟠';
             status = `${-timeSheet.dueInDays} days over due`;
         } else if (timeSheet.dueInDays <= 0) {
-            statusIcon = '🟠';
+            statusIcon = '🟡';
             status = 'due';
         } else if (timeSheet.dueInDays <= 5) {
-            statusIcon = '🟡';
+            statusIcon = '🟢';
             status = `due in ${timeSheet.dueInDays} days`;
         } else if (timeSheet.dueInDays <= 10) {
-            statusIcon = '🟢';
+            statusIcon = '⚪';
             status = 'up coming';
         } else if (startIn < 5) {
-            statusIcon = '🟢';
+            statusIcon = '⚪';
             status = 'up coming';
         }
 

@@ -289,7 +289,7 @@ export class TimeSheetDetail extends Component {
                 </li>
                 <li>
                     <strong>Work days: </strong>
-                    {timePeriod.workDays} | Est Hours: {timePeriod.workDays * 8} | 1 Days = {(1/timePeriod.workDays).toFixed(1)}%
+                    {timePeriod.workDays} | Est Hours: {timePeriod.workDays * 8} | 1 Days = {((1/timePeriod.workDays)*100).toFixed(1)}%
                 </li>
                 <li>
                     <strong>Status: </strong>
