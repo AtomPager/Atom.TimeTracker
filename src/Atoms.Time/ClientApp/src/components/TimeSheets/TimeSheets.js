@@ -20,6 +20,14 @@ export class TimeSheets extends Component {
                         <Switch>
                             <Route path="/timeSheets" exact />
                             <Route
+                                path="/timeSheets/:timeSheetId/"
+                                render={() => (
+                                    <Link to="/timeSheets" className="btn btn-outline-secondary btn-sm">
+                                        Save & Close
+                                    </Link>
+                                )}
+                            />
+                            <Route
                                 path="/timeSheets"
                                 render={() => (
                                     <Link to="/timeSheets" className="btn btn-outline-secondary btn-sm">
