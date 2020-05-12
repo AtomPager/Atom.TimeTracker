@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Joi from 'joi-browser';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 export class TimePeriodDetails extends Component {
     state = { timePeriod: null, persons: null, timePeriodId: null, loading: true, errorMsg: null };
@@ -51,6 +53,24 @@ export class TimePeriodDetails extends Component {
             });
     }
 
+    confirmResetTimeSheet = (e) => {
+        confirmAlert({
+          title: 'Confirm to reset',
+          message: 'Reset time sheet to allow for edits.',
+          buttons: [
+            {
+              label: 'Yes',
+              onClick: () => this.handleResetTimeSheetClick(e)
+            },
+            {
+              label: 'No',
+              onClick: () => onclose
+            }
+          ]
+        });
+      };
+
+
     handleResetTimeSheetClick = (person) => {
         axios
             .post(`api/TimeSheets/${person.timeSheetId}/reject`)
@@ -82,7 +102,7 @@ export class TimePeriodDetails extends Component {
                 <td>{person.submittedDateTime && new Date(person.submittedDateTime).toLocaleDateString()}</td>
                 <td className="text-right">
                     {person.submittedDateTime && (
-                        <button className="btn btn-sm btn-outline-danger" onClick={(e) => this.handleResetTimeSheetClick(person)}>
+                        <button className="btn btn-sm btn-outline-danger" onClick={(e) => this.confirmResetTimeSheet(person)}>
                             Reject
                         </button>
                     )}

@@ -4,6 +4,8 @@ import axios from 'axios';
 import debounce from 'lodash.debounce';
 import Modal from 'react-modal';
 import CreatableSelect from 'react-select/async-creatable';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 export class TimeSheetDetail extends Component {
     state = {
@@ -109,6 +111,23 @@ export class TimeSheetDetail extends Component {
             console.error('Error Creating time sheet entry', error);
         }
     };
+
+    confirmSubmit = (e) => {
+        confirmAlert({
+          title: 'Confirm to submit',
+          message: 'Time sheet can not be edited once submitted',
+          buttons: [
+            {
+              label: 'Yes',
+              onClick: () => this.handleSubmit(e)
+            },
+            {
+              label: 'No',
+              onClick: () => onclose
+            }
+          ]
+        });
+      };
 
     handleSubmit = async (e) => {
         const timeSheetId = this.state.timeSheetId;
@@ -283,8 +302,8 @@ export class TimeSheetDetail extends Component {
                     !this.state.hasChanged && <span className="badge badge-light align-middle">Saved</span>
                 )}
                 <span>&nbsp;&nbsp;</span>
-                <button className="btn btn-sm btn-success" onClick={this.handleSubmit}>
-                    Submit TImeSheet
+                <button className="btn btn-sm btn-success" onClick={this.confirmSubmit}>
+                    Submit TimeSheet
                 </button>
             </span>
         );
