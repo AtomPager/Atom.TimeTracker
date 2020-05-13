@@ -296,7 +296,7 @@ export class TimeSheetDetail extends Component {
                     {submittedDateTime ? `Submitted on ${subDate}` : 'Pending'}
                 </li>
                 <li>
-                    <strong>Sum of Poarts: </strong>
+                    <strong>Sum of Parts: </strong>
                     {this.state.sumOfValues}
                 </li>
             </ul>
