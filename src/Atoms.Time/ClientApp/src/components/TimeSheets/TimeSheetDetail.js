@@ -273,7 +273,7 @@ export class TimeSheetDetail extends Component {
                 <td>{entry.project && entry.project.name}</td>
                 <td>{entry.note}</td>
                 <td>{entry.value}</td>
-                <td>{entry.percentOfPeriod}</td>
+                <td>{(entry.percentOfPeriod * 100).toFixed(1)}</td>
             </tr>
         );
     };
