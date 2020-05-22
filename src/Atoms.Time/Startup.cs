@@ -47,6 +47,12 @@ namespace Atoms.Time
 
             services.AddAntiforgery(options => { options.HeaderName = "X-XSRF-TOKEN"; });
 
+            var instrumentationKey = Configuration.GetValue<string>("ApplicationInsights:InstrumentationKey");
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+	            services.AddApplicationInsightsTelemetry(Configuration);
+            }
+
             var authProvider = Configuration.GetValue<string>("AuthenticationProvider");
 
             if ("AzureAd".Equals(authProvider, StringComparison.OrdinalIgnoreCase))
