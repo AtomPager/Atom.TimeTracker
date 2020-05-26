@@ -30,7 +30,7 @@ export class PersonsIndex extends Component {
                     <tr>
                         <th>Name</th>
                         <th>StartDate</th>
-                        <th>Archived</th>
+                        <th>Active</th>
                     </tr>
                 </thead>
                 <tbody>{persons.map((person) => this.renderTableRow(person))}</tbody>

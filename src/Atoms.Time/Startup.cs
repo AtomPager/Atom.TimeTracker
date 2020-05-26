@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using Atoms.Time.Database;
+using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
@@ -38,20 +40,26 @@ namespace Atoms.Time
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+	        services.AddAntiforgery(options => { options.HeaderName = "X-XSRF-TOKEN"; });
+	        var instrumentationKey = Configuration.GetValue<string>("ApplicationInsights:InstrumentationKey");
+            
+	        if (!string.IsNullOrEmpty(instrumentationKey))
+	        {
+		        services.AddApplicationInsightsTelemetry(Configuration);
+		        Activity.DefaultIdFormat = ActivityIdFormat.Hierarchical;
+		        Activity.ForceDefaultIdFormat = true;
+	        }
+
             services.AddLogging(builder =>
-                builder
-                    .AddDebug()
-                    .AddConsole()
-                    .AddConfiguration(Configuration.GetSection("Logging"))
-                    .SetMinimumLevel(LogLevel.Information));
-
-            services.AddAntiforgery(options => { options.HeaderName = "X-XSRF-TOKEN"; });
-
-            var instrumentationKey = Configuration.GetValue<string>("ApplicationInsights:InstrumentationKey");
-            if (!string.IsNullOrEmpty(instrumentationKey))
             {
-	            services.AddApplicationInsightsTelemetry(Configuration);
-            }
+	            builder
+		            .AddDebug()
+		            .AddConsole()
+		            .AddConfiguration(Configuration.GetSection("Logging"))
+		            .SetMinimumLevel(LogLevel.Information);
+	            if (!string.IsNullOrEmpty(instrumentationKey))
+		            builder.AddApplicationInsights(instrumentationKey);
+            });
 
             var authProvider = Configuration.GetValue<string>("AuthenticationProvider");
 

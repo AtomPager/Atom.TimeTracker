@@ -8,6 +8,7 @@ using Atoms.Time.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Atoms.Time.Controllers.Api
 {
@@ -17,10 +18,12 @@ namespace Atoms.Time.Controllers.Api
     public class TimeSheetsController : ControllerBase
     {
         private readonly TimeSheetContext _context;
+        private readonly ILogger<TimeSheetsController> _logger;
 
-        public TimeSheetsController(TimeSheetContext context)
+        public TimeSheetsController(TimeSheetContext context, ILogger<TimeSheetsController> logger)
         {
-            _context = context;
+	        _context = context;
+	        _logger = logger;
         }
 
         [HttpGet]
@@ -200,11 +203,15 @@ namespace Atoms.Time.Controllers.Api
                 .FirstOrDefaultAsync(p => p.Id == create.TimePeriodId);
 
             if (timePeriod == null)
-                return BadRequest("Time Period specified was not found");
+            {
+	            _logger.LogInformation($"Time Period {create.TimePeriodId} was not found");
+	            return BadRequest("Time Period specified was not found");
+            }
 
-            var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user);
+            var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user && p.IsActive);
             if (person == null)
             {
+	            _logger.LogInformation($"Time Period {create.TimePeriodId} was not created because user '{user}' was now found.");
                 return BadRequest("Need to be an active user to create time sheets");
             }
 
