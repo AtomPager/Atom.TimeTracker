@@ -12,256 +12,260 @@ using Microsoft.Extensions.Logging;
 
 namespace Atoms.Time.Controllers.Api
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize(AuthPolicy.TimeSheet)]
-    public class TimeSheetsController : ControllerBase
-    {
-        private readonly TimeSheetContext _context;
-        private readonly ILogger<TimeSheetsController> _logger;
+	[Route("api/[controller]")]
+	[ApiController]
+	[Authorize(AuthPolicy.TimeSheet)]
+	public class TimeSheetsController : ControllerBase
+	{
+		private readonly TimeSheetContext _context;
+		private readonly ILogger<TimeSheetsController> _logger;
 
-        public TimeSheetsController(TimeSheetContext context, ILogger<TimeSheetsController> logger)
-        {
-	        _context = context;
-	        _logger = logger;
-        }
+		public TimeSheetsController(TimeSheetContext context, ILogger<TimeSheetsController> logger)
+		{
+			_context = context;
+			_logger = logger;
+		}
 
-        [HttpGet]
-        public async Task<IEnumerable<PersonTimeSheets>> GetTimeSheet(bool showAll = false)
-        {
-            var query = _context.PersonTimeSheets.AsNoTracking()
-                .Where(p => p.UserName == this.GetUserName());
+		[HttpGet]
+		public async Task<IEnumerable<PersonTimeSheets>> GetTimeSheet(bool showAll = false)
+		{
+			var query = _context.PersonTimeSheets.AsNoTracking()
+				.Where(p => p.UserName == this.GetUserName());
 
-            if (!showAll)
-            {
-                query = query.Where(p =>
-                    p.PeriodStartDate < DateTime.UtcNow.AddDays(20) &&
-                    (p.PeriodEndDate > DateTime.UtcNow.AddMonths(-6) || p.SubmittedDateTime == null));
-            }
+			if (!showAll)
+			{
+				query = query.Where(p =>
+					p.PeriodStartDate < DateTime.UtcNow.AddDays(20) &&
+					(p.PeriodEndDate > DateTime.UtcNow.AddMonths(-6) || p.SubmittedDateTime == null));
+			}
 
-            return await query
-                .OrderByDescending(p => p.PeriodEndDate)
-                .ToListAsync();
-        }
+			return await query
+				.OrderByDescending(p => p.PeriodEndDate)
+				.ToListAsync();
+		}
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TimeSheet>> GetTimeSheet(int id)
-        {
-            var timeSheet = await _context.TimeSheets
-                .AsNoTracking()
-                .Include(t => t.TimePeriod)
-                .Include(t => t.Person)
-                .Include(t => t.Entries)
-                .ThenInclude(t => t.Project)
-                .FirstOrDefaultAsync(t => t.Id == id); 
-            
-            if (timeSheet == null)
-                return NotFound();
+		[HttpGet("{id}")]
+		public async Task<ActionResult<TimeSheet>> GetTimeSheet(int id)
+		{
+			var timeSheet = await _context.TimeSheets
+				.AsNoTracking()
+				.Include(t => t.TimePeriod)
+				.Include(t => t.Person)
+				.Include(t => t.Entries)
+				.ThenInclude(t => t.Project)
+				.FirstOrDefaultAsync(t => t.Id == id);
 
-            if (!this.GetUserName().Equals(timeSheet.Person.UserName, StringComparison.OrdinalIgnoreCase)
-                && !this.User.IsInRole(AppRoles.Administrator))
-                return NotFound();
+			if (timeSheet == null)
+				return NotFound();
 
-            return Ok(timeSheet);
-        }
+			var userName = this.GetUserName();
+			if (!userName.Equals(timeSheet.Person.UserName, StringComparison.OrdinalIgnoreCase)
+			    && !this.User.IsInRole(AppRoles.Administrator))
+				return NotFound();
 
-        [HttpPost("{id}")]
-        public async Task<ActionResult<TimeSheet>> UpdateTimeSheet(int id, [FromBody] TimeSheetUpdate timeSheetUpdate)
-        {
-            if (timeSheetUpdate?.Entries == null)
-                return new BadRequestResult();
+			_logger.LogInformation($"Returning time sheet {id} (ending on {timeSheet.TimePeriod.PeriodEndDate:yyyy-MM-dd}) from {timeSheet.Person.UserName} for {userName}");
+			return Ok(timeSheet);
+		}
 
-            var timeSheet = await _context.TimeSheets
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
+		[HttpPost("{id}")]
+		public async Task<ActionResult<TimeSheet>> UpdateTimeSheet(int id, [FromBody] TimeSheetUpdate timeSheetUpdate)
+		{
+			if (timeSheetUpdate?.Entries == null)
+				return new BadRequestResult();
 
-            if (timeSheet == null)
-                return NotFound();
+			var timeSheet = await _context.TimeSheets
+				.AsNoTracking()
+				.FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
-            if (timeSheet.SubmittedDateTime.HasValue)
-                return BadRequest("Time Sheet has already been submitted.");
+			if (timeSheet == null)
+				return NotFound();
 
-            var timeSheetEntries = await _context.TimeSheetEntries
-                .Where(t => t.TimeSheet.Person.UserName == this.GetUserName() && t.TimeSheetId == id)
-                .ToDictionaryAsync(s => s.Id);
+			if (timeSheet.SubmittedDateTime.HasValue)
+				return BadRequest("Time Sheet has already been submitted.");
 
-            foreach (var update in timeSheetUpdate.Entries)
-            {
-                if (update.Value < 0)
-                    return BadRequest($"Value for entries must be positive.");
+			var timeSheetEntries = await _context.TimeSheetEntries
+				.Where(t => t.TimeSheet.Person.UserName == this.GetUserName() && t.TimeSheetId == id)
+				.ToDictionaryAsync(s => s.Id);
 
-                if (timeSheetEntries.TryGetValue(update.Id, out var e))
-                {
-                    e.Value = update.Value;
-                    e.Note = update.Note;
-                    e.ProjectId = update.Project?.Id;
-                }
-                else
-                {
-                    // Id was not found or not for this time sheet
-                    return NotFound(update);
-                }
-            }
+			foreach (var update in timeSheetUpdate.Entries)
+			{
+				if (update.Value < 0)
+					return BadRequest($"Value for entries must be positive.");
 
-            var totalValues = timeSheetEntries.Values.Sum(e => e.Value);
-            foreach (var e in timeSheetEntries.Values)
-            {
-                e.PercentOfPeriod = totalValues < .001 ? 0 : (e.Value / totalValues);
-            }
+				if (timeSheetEntries.TryGetValue(update.Id, out var e))
+				{
+					e.Value = update.Value;
+					e.Note = update.Note;
+					e.ProjectId = update.Project?.Id;
+				}
+				else
+				{
+					// Id was not found or not for this time sheet
+					return NotFound(update);
+				}
+			}
 
-            await _context.SaveChangesAsync();
-            timeSheet = await _context.TimeSheets
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
+			var totalValues = timeSheetEntries.Values.Sum(e => e.Value);
+			foreach (var e in timeSheetEntries.Values)
+			{
+				e.PercentOfPeriod = totalValues < .001 ? 0 : (e.Value / totalValues);
+			}
 
-            return timeSheet;
-        }
+			await _context.SaveChangesAsync();
+			timeSheet = await _context.TimeSheets
+				.AsNoTracking()
+				.FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
-        [HttpPost("{id}/submit")]
-        public async Task<ActionResult<TimeSheet>> SubmitTimeSheet(int id)
-        {
-            var timeSheet = await _context.TimeSheets
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
+			return timeSheet;
+		}
 
-            if (timeSheet == null)
-                return NotFound();
+		[HttpPost("{id}/submit")]
+		public async Task<ActionResult<TimeSheet>> SubmitTimeSheet(int id)
+		{
+			var timeSheet = await _context.TimeSheets
+				.FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
-            if (timeSheet.SubmittedDateTime.HasValue)
-                return BadRequest("Time Sheet has already been submitted.");
+			if (timeSheet == null)
+				return NotFound();
 
-            timeSheet.SubmittedDateTime = DateTimeOffset.Now;
-            await _context.SaveChangesAsync();
+			if (timeSheet.SubmittedDateTime.HasValue)
+				return BadRequest("Time Sheet has already been submitted.");
 
-            return Ok(timeSheet);
-        }
+			timeSheet.SubmittedDateTime = DateTimeOffset.Now;
+			await _context.SaveChangesAsync();
 
-        [HttpPost("{id}/reject")]
-        [Authorize(AuthPolicy.Administrator)]
-        public async Task<ActionResult<TimeSheet>> RejectTimeSheet(int id)
-        {
-            // TODO: Check that the user has the rights to do this on this sheet.
+			return Ok(timeSheet);
+		}
 
-            var timeSheet = await _context.TimeSheets
-                .FirstOrDefaultAsync(t => t.Id == id);
+		[HttpPost("{id}/reject")]
+		[Authorize(AuthPolicy.Administrator)]
+		public async Task<ActionResult<TimeSheet>> RejectTimeSheet(int id)
+		{
+			// TODO: Check that the user has the rights to do this on this sheet.
 
-            if (timeSheet == null)
-                return NotFound();
+			var timeSheet = await _context.TimeSheets
+				.FirstOrDefaultAsync(t => t.Id == id);
 
-            if (!timeSheet.SubmittedDateTime.HasValue)
-                return new NoContentResult();
+			if (timeSheet == null)
+				return NotFound();
 
-            timeSheet.SubmittedDateTime = null;
-            await _context.SaveChangesAsync();
+			if (!timeSheet.SubmittedDateTime.HasValue)
+				return new NoContentResult();
 
-            return new NoContentResult();
-        }
+			timeSheet.SubmittedDateTime = null;
+			await _context.SaveChangesAsync();
 
-        [HttpPost("{id}/entries")]
-        public async Task<ActionResult<TimeSheetEntry>> CreateTimeSheetEntry(int id)
-        {
-            var timeSheet = await _context.TimeSheets
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
+			return new NoContentResult();
+		}
 
-            if (timeSheet == null)
-                return NotFound();
+		[HttpPost("{id}/entries")]
+		public async Task<ActionResult<TimeSheetEntry>> CreateTimeSheetEntry(int id)
+		{
+			var timeSheet = await _context.TimeSheets
+				.AsNoTracking()
+				.FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
-            if (timeSheet.SubmittedDateTime.HasValue)
-                return BadRequest("Time Sheet has already been submitted.");
+			if (timeSheet == null)
+				return NotFound();
 
-            var entry = new TimeSheetEntry { TimeSheetId = id };
-            await _context.TimeSheetEntries.AddAsync(entry);
-            await _context.SaveChangesAsync();
+			if (timeSheet.SubmittedDateTime.HasValue)
+				return BadRequest("Time Sheet has already been submitted.");
 
-            return CreatedAtAction("GetTimeSheet", new { id = timeSheet.Id }, entry);
-        }
+			var entry = new TimeSheetEntry { TimeSheetId = id };
+			await _context.TimeSheetEntries.AddAsync(entry);
+			await _context.SaveChangesAsync();
 
-        [HttpDelete("{id}/entries/{entryId}")]
-        public async Task<ActionResult> DeleteTimeSheetEntry(int id, int entryId)
-        {
-            var timeSheetEntry = await _context.TimeSheetEntries
-                .FirstOrDefaultAsync(t =>
-                    t.TimeSheet.Person.UserName == this.GetUserName()
-                    && t.TimeSheet.SubmittedDateTime == null
-                    && t.TimeSheet.Id == id
-                    && t.Id == entryId);
+			return CreatedAtAction("GetTimeSheet", new { id = timeSheet.Id }, entry);
+		}
 
-            if (timeSheetEntry == null)
-                return NotFound();
+		[HttpDelete("{id}/entries/{entryId}")]
+		public async Task<ActionResult> DeleteTimeSheetEntry(int id, int entryId)
+		{
+			var timeSheetEntry = await _context.TimeSheetEntries
+				.FirstOrDefaultAsync(t =>
+					t.TimeSheet.Person.UserName == this.GetUserName()
+					&& t.TimeSheet.SubmittedDateTime == null
+					&& t.TimeSheet.Id == id
+					&& t.Id == entryId);
 
-            _context.TimeSheetEntries.Remove(timeSheetEntry);
-            await _context.SaveChangesAsync();
+			if (timeSheetEntry == null)
+				return NotFound();
 
-            return new NoContentResult();
-        }
+			_context.TimeSheetEntries.Remove(timeSheetEntry);
+			await _context.SaveChangesAsync();
 
-        [HttpPost]
-        public async Task<ActionResult<TimeSheet>> Create(TimeSheetCreate create)
-        {
-            var user = this.GetUserName();
-            var timePeriod = await _context.TimePeriods.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == create.TimePeriodId);
+			return new NoContentResult();
+		}
 
-            if (timePeriod == null)
-            {
-	            _logger.LogInformation($"Time Period {create.TimePeriodId} was not found");
-	            return BadRequest("Time Period specified was not found");
-            }
+		[HttpPost]
+		public async Task<ActionResult<TimeSheet>> Create(TimeSheetCreate create)
+		{
+			var user = this.GetUserName();
+			_logger.LogInformation($"Creating Time Period {create.TimePeriodId} for {user}");
 
-            var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user && p.IsActive);
-            if (person == null)
-            {
-	            _logger.LogInformation($"Time Period {create.TimePeriodId} was not created because user '{user}' was now found.");
-                return BadRequest("Need to be an active user to create time sheets");
-            }
+			var timePeriod = await _context.TimePeriods.AsNoTracking()
+			.FirstOrDefaultAsync(p => p.Id == create.TimePeriodId);
 
-            var timeSheet = await _context.TimeSheets
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Person.UserName == user && t.TimePeriodId == timePeriod.Id);
+			if (timePeriod == null)
+			{
+				_logger.LogWarning($"Time Period {create.TimePeriodId} was not found");
+				return BadRequest("Time Period specified was not found");
+			}
 
-            // If the time sheet for the period doesn't already exist, then create it.
-            if (timeSheet == null)
-            {
-                timeSheet = new TimeSheet
-                {
-                    PersonId = person.Id,
-                    TimePeriodId = timePeriod.Id
-                };
+			var person = await _context.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.UserName == user && p.IsActive);
+			if (person == null)
+			{
+				_logger.LogWarning($"Time Period {create.TimePeriodId} was not created because user '{user}' was now found.");
+				return BadRequest("Need to be an active user to create time sheets");
+			}
 
-                await _context.TimeSheets.AddAsync(timeSheet);
-                await _context.SaveChangesAsync();
-            }
+			var timeSheet = await _context.TimeSheets
+				.AsNoTracking()
+				.FirstOrDefaultAsync(t => t.Person.UserName == user && t.TimePeriodId == timePeriod.Id);
 
-            return CreatedAtAction("GetTimeSheet", new { id = timeSheet.Id }, timeSheet);
-        }
+			// If the time sheet for the period doesn't already exist, then create it.
+			if (timeSheet == null)
+			{
+				timeSheet = new TimeSheet
+				{
+					PersonId = person.Id,
+					TimePeriodId = timePeriod.Id
+				};
 
-        public class TimeSheetCreate
-        {
-            public int TimePeriodId { get; set; }
-        }
+				await _context.TimeSheets.AddAsync(timeSheet);
+				await _context.SaveChangesAsync();
+			}
 
-        public class TimeSheetUpdate
-        {
-            public List<TimeSheetEntryUpdate> Entries { get; set; }
-        }
+			return CreatedAtAction("GetTimeSheet", new { id = timeSheet.Id }, timeSheet);
+		}
 
-        public class TimeSheetEntryUpdate
-        {
-            public int Id { get; set; }
-            public TimeSheetEntryProject Project { get; set; }
+		public class TimeSheetCreate
+		{
+			public int TimePeriodId { get; set; }
+		}
 
-            public string Note { get; set; }
+		public class TimeSheetUpdate
+		{
+			public List<TimeSheetEntryUpdate> Entries { get; set; }
+		}
 
-            /// <summary>
-            /// This value given my the person representing the part count they spend on this project during the period
-            /// </summary>
-            public double Value { get; set; }
+		public class TimeSheetEntryUpdate
+		{
+			public int Id { get; set; }
+			public TimeSheetEntryProject Project { get; set; }
 
-            public class TimeSheetEntryProject
-            {
-                public int Id { get; set; }
-            }
-        }
-    }
+			public string Note { get; set; }
+
+			/// <summary>
+			/// This value given my the person representing the part count they spend on this project during the period
+			/// </summary>
+			public double Value { get; set; }
+
+			public class TimeSheetEntryProject
+			{
+				public int Id { get; set; }
+			}
+		}
+	}
 
 }
