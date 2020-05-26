@@ -55,12 +55,7 @@ namespace Atoms.Time.Controllers.Api
         [AllowAnonymous]
         public ActionResult GetInsightsKey()
         {
-	        return new ContentResult
-	        {
-		        Content = _configuration.GetValue<string>("ApplicationInsights:InstrumentationKey") ?? string.Empty,
-		        ContentType = "text/plain",
-		        StatusCode = 200
-	        };
+            return Ok(new { InstrumentationKey = _configuration.GetValue<string>("ApplicationInsights:InstrumentationKey") ?? string.Empty });
         }
 
 #if DEBUG

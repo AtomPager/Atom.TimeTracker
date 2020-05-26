@@ -5,10 +5,10 @@
 	        if (!response.ok) {
 		        throw new Error('Network response was not ok');
 	        }
-	        response.text();
+	        response.json();
         })
 		.then(data => {
-			if (data) {
+			if (data && data.instrumentationKey) {
 				console.log(data);
 		        var sdkInstance = "appInsightsSDK";
 		        window[sdkInstance] = "appInsights";
@@ -63,9 +63,7 @@
 					        }
 					        return o
 				        }(
-					        {
-						        instrumentationKey: data
-					        }
+					        data
 				        );
 		        (window[aiName] = aisdk).queue && 0 === aisdk.queue.length && aisdk.trackPageView({});
 	        }
