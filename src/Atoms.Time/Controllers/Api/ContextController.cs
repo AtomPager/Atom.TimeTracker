@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Atoms.Time.Database;
 using Atoms.Time.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Atoms.Time.Controllers.Api
 {
@@ -13,10 +15,12 @@ namespace Atoms.Time.Controllers.Api
     public class ContextController : ControllerBase
     {
         private readonly TimeSheetContext _context;
+        private readonly IConfiguration _configuration;
 
-        public ContextController(TimeSheetContext context)
+        public ContextController(TimeSheetContext context, IConfiguration configuration)
         {
-            _context = context;
+	        _context = context;
+	        _configuration = configuration;
         }
 
         [HttpGet]
@@ -45,6 +49,18 @@ namespace Atoms.Time.Controllers.Api
 		        IsTimeSheetUser = isTimeSheetUser, 
 		        IsAdmin = User.IsInRole(AppRoles.Administrator)
 	        });
+        }
+
+        [HttpGet("InsightsKey")]
+        [AllowAnonymous]
+        public ActionResult GetInsightsKey()
+        {
+	        return new ContentResult
+	        {
+		        Content = _configuration.GetValue<string>("ApplicationInsights:InstrumentationKey") ?? string.Empty,
+		        ContentType = "text/plain",
+		        StatusCode = 200
+	        };
         }
 
 #if DEBUG
