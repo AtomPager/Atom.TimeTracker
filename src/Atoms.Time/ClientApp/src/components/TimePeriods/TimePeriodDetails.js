@@ -113,7 +113,7 @@ export class TimePeriodDetails extends Component {
 
     renderTable = (persons) => {
         return (
-            <table className="table table-striped" aria-labelledby="tabelLabel">
+            <table className="table table-sm table-striped table-responsive-sm" aria-labelledby="tabelLabel">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -216,7 +216,7 @@ export class TimePeriodChart extends Component {
     }
 
     render() {
-        const subburstContainerStyle = { height: '500px' };
+        const subburstContainerStyle = { height: '400px' };
         let contents = this.state.loading ? (
             <p>
                 <em>Loading...</em>
