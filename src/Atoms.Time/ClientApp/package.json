@@ -6,6 +6,7 @@
         "axios": "^0.19.2",
         "bootstrap": "^4.4.1",
         "fs-write-stream-atomic": "^1.0.10",
+        "http-proxy": "^1.18.1",
         "joi-browser": "^13.4.0",
         "jquery": "^3.4.1",
         "lodash.debounce": "^4.0.8",
