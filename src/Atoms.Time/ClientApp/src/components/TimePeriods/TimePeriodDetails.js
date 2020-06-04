@@ -235,8 +235,7 @@ export class TimePeriodChart extends Component {
                     borderWidth={1}
                     borderColor="white"
                     colors={{ scheme: 'category10' }}
-                    // childColor={'noinherit'}
-                    childColor={{ from: 'color' }}
+                    childColor={'noinherit'}
                     animate={true}
                     motionStiffness={90}
                     motionDamping={15}

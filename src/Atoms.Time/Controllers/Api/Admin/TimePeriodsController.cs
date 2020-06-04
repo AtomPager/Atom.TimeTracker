@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Atoms.Time.Database;
 using Atoms.Time.Database.Views;
+using Atoms.Time.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,8 +72,8 @@ namespace Atoms.Time.Controllers.Api.Admin
 
         private static readonly Func<TimePeriodReport, string>[] GroupBys = new[]
         {
-            t => t.ProjectClassification,
             t => t.ProjectGroup,
+            t => t.ProjectClassification,
             t => t.ProjectName,
             new Func<TimePeriodReport, string>(t => t.PersonName)
         };
@@ -87,20 +88,41 @@ namespace Atoms.Time.Controllers.Api.Admin
                 return NotFound();
             }
 
+            var colorLookup = new Dictionary<string, string>();
+
             var data = await _context.TimePeriodReport.Where(t => t.TimePeriodId == id).ToListAsync();
             var result = ToNode(data, GroupBys);
+
+            string GetColor(string value)
+            {
+                if (colorLookup.TryGetValue(value, out var color))
+                {
+                    return color;
+                }
+
+                color = ColorSelector.GetHslColor(colorLookup.Count);
+                return colorLookup[value] = color;
+            }
 
             IReadOnlyList<TimePeriodProjectNode> ToNode(IReadOnlyList<TimePeriodReport> input, Span<Func<TimePeriodReport, string>> groupBy)
             {
                 if (groupBy.Length == 1)
-                    return new[] { new TimePeriodProjectNode { Name = groupBy[0](input[0]), PercentOfPeriod = input[0].PercentOfPeriod * 100 } };
+                {
+                    var name = groupBy[0](input[0]);
+                    return new[] { new TimePeriodProjectNode
+                    {
+                        Name = name,
+                        PercentOfPeriod = input[0].PercentOfPeriod * 100,
+                        Color = GetColor(name)
+                    } };
+                }
 
                 var r = new List<TimePeriodProjectNode>();
 
                 foreach (var g in input.GroupBy(groupBy[0]))
                 {
                     var child = ToNode(g.ToList(), groupBy.Slice(1));
-                    r.Add(new TimePeriodProjectNode { Children = child, Name = g.Key});
+                    r.Add(new TimePeriodProjectNode { Children = child, Name = g.Key, Color = GetColor(g.Key) });
                 }
 
                 return r;
