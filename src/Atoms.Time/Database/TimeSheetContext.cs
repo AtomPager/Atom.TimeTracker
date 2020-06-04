@@ -21,6 +21,7 @@ namespace Atoms.Time.Database
         public DbSet<Project> Projects { get; set; }
         public DbSet<TimePeriodSummary> TimePeriodSummary { get; set; }
         public DbSet<PersonTimeSheets> PersonTimeSheets { get; set; }
+        public DbSet<TimePeriodReport> TimePeriodReport { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +29,7 @@ namespace Atoms.Time.Database
             modelBuilder.Entity<PersonTimeSheets>().HasNoKey().ToView("vw_PersonTimeSheets");
 
             modelBuilder.Entity<TimePeriodSummary>().HasNoKey().ToView("vw_TimePeriodSummary");
+            modelBuilder.Entity<TimePeriodReport>().HasNoKey().ToView("vw_TimePeriodReport");
 
             modelBuilder.Entity<TimeSheet>(entity =>
             {

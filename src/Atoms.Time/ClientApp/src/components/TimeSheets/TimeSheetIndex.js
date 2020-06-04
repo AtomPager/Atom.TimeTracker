@@ -43,7 +43,12 @@ export class TimeSheetIndex extends Component {
                 <em>Loading...</em>
             </p>
         ) : (
-            this.renderTable(this.state.timeSheets)
+            <React.Fragment>
+                {this.renderTable(this.state.timeSheets.filter((s) => s.submittedDateTime === undefined))}
+
+                <h4>Completed Time Sheets</h4>
+                {this.renderTable(this.state.timeSheets.filter((s) => s.submittedDateTime !== undefined))}
+            </React.Fragment>
         );
 
         return <div>{contents}</div>;

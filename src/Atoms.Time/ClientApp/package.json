@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@nivo/sunburst": "^0.62.0",
         "axios": "^0.19.2",
         "bootstrap": "^4.4.1",
         "fs-write-stream-atomic": "^1.0.10",

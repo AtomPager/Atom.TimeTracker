@@ -7,6 +7,7 @@ using Atoms.Time.Database;
 using Atoms.Time.Database.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace Atoms.Time.Controllers.Api.Admin
@@ -66,6 +67,46 @@ namespace Atoms.Time.Controllers.Api.Admin
                 TimePeriod = timePeriod,
                 Persons = persons
             };
+        }
+
+        private static readonly Func<TimePeriodReport, string>[] GroupBys = new[]
+        {
+            t => t.ProjectClassification,
+            t => t.ProjectGroup,
+            t => t.ProjectName,
+            new Func<TimePeriodReport, string>(t => t.PersonName)
+        };
+
+        // Get:  api/admin/TimePeriods/5/report
+        [HttpGet("{id}/report")]
+        public async Task<ActionResult<TimePeriodProjectNode>> GetTimePeriodReport(int id)
+        {
+            var timePeriod = await _context.TimePeriods.AsNoTracking().SingleOrDefaultAsync(t => t.Id == id);
+            if (timePeriod == null)
+            {
+                return NotFound();
+            }
+
+            var data = await _context.TimePeriodReport.Where(t => t.TimePeriodId == id).ToListAsync();
+            var result = ToNode(data, GroupBys);
+
+            IReadOnlyList<TimePeriodProjectNode> ToNode(IReadOnlyList<TimePeriodReport> input, Span<Func<TimePeriodReport, string>> groupBy)
+            {
+                if (groupBy.Length == 1)
+                    return new[] { new TimePeriodProjectNode { Name = groupBy[0](input[0]), PercentOfPeriod = input[0].PercentOfPeriod * 100 } };
+
+                var r = new List<TimePeriodProjectNode>();
+
+                foreach (var g in input.GroupBy(groupBy[0]))
+                {
+                    var child = ToNode(g.ToList(), groupBy.Slice(1));
+                    r.Add(new TimePeriodProjectNode { Children = child, Name = g.Key});
+                }
+
+                return r;
+            }
+
+            return new TimePeriodProjectNode { Children = result, Name = "Time Period" };
         }
 
         // POST: api/admin/TimePeriods
@@ -134,6 +175,14 @@ namespace Atoms.Time.Controllers.Api.Admin
                 || (t.PeriodStartDate <= startDate && t.PeriodEndDate >= startDate)  // we start before an existing time sheet ends
                 || (t.PeriodStartDate <= endDate && t.PeriodEndDate >= endDate)
                 || (t.PeriodStartDate >= startDate && t.PeriodEndDate <= endDate);
+        }
+
+        public class TimePeriodProjectNode
+        {
+            public string Name { get; set; }
+            public string Color { get; set; }
+            public IReadOnlyList<TimePeriodProjectNode> Children { get; set; }
+            public double? PercentOfPeriod { get; set; }
         }
 
         public class TimePeriodCreate
