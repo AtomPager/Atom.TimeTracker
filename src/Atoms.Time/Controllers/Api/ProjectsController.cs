@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Atoms.Time.Database;
 using Atoms.Time.Helpers;
@@ -81,6 +82,27 @@ namespace Atoms.Time.Controllers.Api
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetProject", new { id = project.Id }, project);
+        }
+
+
+
+        [HttpPost("{id}/mergeInto/{targetId}")]
+        [Authorize(AuthPolicy.Administrator)]
+        public async Task<IActionResult> PostMergeProject(int id, int targetId)
+        {
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
+            if (project == null)
+                return NotFound();
+            var targetProject = await _context.Projects.FirstOrDefaultAsync(p => p.Id == targetId);
+            if (targetProject == null)
+                return NotFound();
+
+            await _context.Database.ExecuteSqlInterpolatedAsync($"UPDATE [TimeSheetEntries] SET ProjectId = {targetId} where ProjectId = {id}");
+
+            _context.Projects.Remove(project);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         [HttpPost("{id}")]

@@ -2,14 +2,16 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Joi from 'joi-browser';
+import { ProjectSelector } from './ProjectSelector';
 
 export class ProjectEdit extends Component {
     state = {
-        projectCreate: null,
         projectId: null,
+        project: null,
         errors: {},
         errorMsg: null,
         loading: true,
+        mergeTargetProject: null,
     };
 
     schema = {
@@ -23,7 +25,7 @@ export class ProjectEdit extends Component {
             return;
         }
 
-        const { projectId } = this.props.match.params;
+        const projectId = Number(this.props.match.params.projectId);
 
         this.setState({ projectId });
         axios
@@ -90,6 +92,48 @@ export class ProjectEdit extends Component {
                     this.setState({ errorMsg: error.message, loading: false });
                 }
             });
+    };
+
+    onMergeSubmit = (e) => {
+        e.preventDefault();
+
+        if (!this.state.mergeTargetProject) return;
+
+        axios
+            .post(`api/Projects/${this.state.projectId}/mergeInto/${this.state.mergeTargetProject.id}`)
+            .then((r) => {
+                this.props.history.push('/projects');
+            })
+            .catch((error) => {
+                if (error.response) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    const errorMsg = error.response.data.title || error.response.data || 'Error loading data';
+                    console.log(errorMsg);
+                    this.setState({ errorMsg, loading: false });
+                } else if (error.request) {
+                    // The request was made but no response was received
+                    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+                    // http.ClientRequest in node.js
+                    console.log(error.request);
+                    this.setState({ errorMsg: 'Time out', loading: false });
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    console.log('Error', error.message);
+                    this.setState({ errorMsg: error.message, loading: false });
+                }
+            });
+    };
+
+    handleProjectSelectorChange = ({ targetProject }) => {
+        console.log('targetProject', targetProject);
+        if (this.state.projectId === targetProject.id) {
+            this.setState({ mergeTargetProject: null });
+        } else {
+            this.setState({ mergeTargetProject: targetProject });
+        }
     };
 
     handleChange = ({ currentTarget: input }) => {
@@ -268,6 +312,23 @@ export class ProjectEdit extends Component {
             <div>{this.renderForm()}</div>
         );
 
-        return <div>{contents}</div>;
+        return (
+            <React.Fragment>
+                {contents}
+                <hr />
+                <h3>Merge into project</h3>
+                <form onSubmit={this.onMergeSubmit}>
+                    <ProjectSelector
+                        helpMsg="Move all existing uses of this project to the target project, and then delete this project."
+                        onChange={this.handleProjectSelectorChange}
+                    />
+                    <div className="pt-3">
+                        <button type="submit" className="btn btn-outline-danger" disabled={!this.state.mergeTargetProject}>
+                            Merge
+                        </button>
+                    </div>
+                </form>
+            </React.Fragment>
+        );
     }
 }
