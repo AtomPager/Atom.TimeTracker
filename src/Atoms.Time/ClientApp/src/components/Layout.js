@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { Container } from 'reactstrap';
 import { NavMenu } from './NavMenu';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css';
 
 export class Layout extends Component {
     static displayName = Layout.name;
@@ -10,6 +11,8 @@ export class Layout extends Component {
             <div>
                 <NavMenu userContext={this.props.userContext} />
                 <div className="container-md">{this.props.children}</div>
+                <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss pauseOnHover />
+                <ToastContainer />
                 <footer>
                     <div className="container-md">
                         Powered by{' '}

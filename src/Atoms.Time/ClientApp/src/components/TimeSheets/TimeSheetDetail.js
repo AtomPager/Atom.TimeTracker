@@ -6,6 +6,7 @@ import Modal from 'react-modal';
 import CreatableSelect from 'react-select/async-creatable';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import { toast } from 'react-toastify';
 
 export class TimeSheetDetail extends Component {
     state = {
@@ -18,7 +19,7 @@ export class TimeSheetDetail extends Component {
         saving: false,
         hasChanged: false,
         projects: [],
-        sumOfValues: null
+        sumOfValues: null,
     };
 
     schema = {
@@ -43,7 +44,7 @@ export class TimeSheetDetail extends Component {
 
                 // Add a key field for internal tracking, as when we add new entried during editing, we will not have the Id to use as a key.
                 const entries = timeSheet.entries;
-                
+
                 let sumOfValues = 0;
                 entries.forEach((e) => {
                     sumOfValues += e.value;
@@ -108,51 +109,80 @@ export class TimeSheetDetail extends Component {
         clearTimeout(this.timeout);
         this.setState({ saving: true, hasChanged: false });
 
-        try {
-            const res = await axios.post(`api/TimeSheets/${timeSheetId}`, { entries: values });
-            console.log(res);
-            if (updateState) {
+        await axios
+            .post(`api/TimeSheets/${timeSheetId}`, { entries: values })
+            .then((res) => {
+                console.log(res);
+                if (updateState) {
+                    this.setState({ saving: false });
+                }
+            })
+            .catch((error) => {
                 this.setState({ saving: false });
-            }
-        } catch (error) {
-            console.error('Error Creating time sheet entry', error);
-        }
+                this.showError(error, 'Error saving time sheet');
+            });
     };
 
     confirmSubmit = (e) => {
         confirmAlert({
-          title: 'Confirm to submit',
-          message: 'Time sheet can not be edited once submitted',
-          buttons: [
-            {
-              label: 'Yes',
-              onClick: () => this.handleSubmit(e)
-            },
-            {
-              label: 'No',
-              onClick: () => onclose
-            }
-          ]
+            title: 'Confirm to submit',
+            message: 'Time sheet can not be edited once submitted',
+            buttons: [
+                {
+                    label: 'Yes',
+                    onClick: () => this.handleSubmit(e),
+                },
+                {
+                    label: 'No',
+                    onClick: () => onclose,
+                },
+            ],
         });
-      };
+    };
 
     handleSubmit = async (e) => {
         const timeSheetId = this.state.timeSheetId;
         if (!timeSheetId) {
-            console.error("Time Sheet not loaded, can't create new Entry.");
+            toast.error('Time Sheet not loaded, can not submit.');
+            console.error('Time Sheet not loaded, can not submit.');
             return;
         }
 
         if (this.state.hasChanged) await this.save(true);
         this.setState({ saving: true, hasChanged: false });
 
-        try {
-            const res = await axios.post(`api/TimeSheets/${timeSheetId}/submit`);
-            console.log(res);
-            this.setState({ saving: false, submittedDateTime: res.data.submittedDateTime });
-        } catch (error) {
-            console.error('Error Creating time sheet entry', error);
+        await axios
+            .post(`api/TimeSheets/${timeSheetId}/submit`)
+            .then((res) => {
+                console.log(res);
+                this.setState({ saving: false, submittedDateTime: res.data.submittedDateTime });
+                toast.success('Time sheet submitted');
+            })
+            .catch((error) => {
+                this.showError(error, 'Submmiting time sheet');
+                this.setState({ saving: false });
+            });
+    };
+
+    showError = (error, action) => {
+        var msg = null;
+        if (error.response) {
+            console.error(action, error.response);
+            if (error.response.data) msg = error.response.data;
+            else msg = error.response && (error.response.statusText || error.response.status);
         }
+
+        const toastMsg = () => {
+            return (
+                <div>
+                    <h4>Error {action}</h4>
+                    <div>{msg}</div>
+                    <div>Code: {error.response && error.response.status}</div>
+                </div>
+            );
+        };
+
+        toast.error(toastMsg, { autoClose: 15000 });
     };
 
     handleEntryChange = (e, entry) => {
@@ -166,7 +196,7 @@ export class TimeSheetDetail extends Component {
         let sumOfValues = 0;
         if (e.name === 'value') {
             // Need to re-calculate the percentOfPeriod
-           
+
             entries.forEach((e) => {
                 sumOfValues += e.value;
             });
@@ -184,6 +214,7 @@ export class TimeSheetDetail extends Component {
     handleEntryCreate = () => {
         const timeSheetId = this.state.timeSheetId;
         if (!timeSheetId) {
+            toast.error('Time Sheet not loaded, can not create new Entry.');
             console.error("Time Sheet not loaded, can't create new Entry.");
             return;
         }
@@ -197,14 +228,15 @@ export class TimeSheetDetail extends Component {
                 this.setState({ entries });
             })
             .catch((error) => {
-                console.error('Error Creating time sheet entry', error);
+                this.showError(error, 'Creating new entry');
             });
     };
 
     handleEntryDelete = (e) => {
         const timeSheetId = this.state.timeSheetId;
         if (!timeSheetId) {
-            console.error("Time Sheet not loaded, can't create new Entry.");
+            toast.error('Time Sheet not loaded, can not delete new Entry.');
+            console.error("Time Sheet not loaded, can't delete new Entry.");
             return;
         }
 
@@ -235,7 +267,7 @@ export class TimeSheetDetail extends Component {
                 }
             })
             .catch((error) => {
-                console.error('Error Creating time sheet entry', error);
+                this.showError(error, 'Removing Entry');
             });
     };
 
@@ -289,7 +321,7 @@ export class TimeSheetDetail extends Component {
                 </li>
                 <li>
                     <strong>Work days: </strong>
-                    {timePeriod.workDays} | Est Hours: {timePeriod.workDays * 8} | 1 Days = {((1/timePeriod.workDays)*100).toFixed(1)}%
+                    {timePeriod.workDays} | Est Hours: {timePeriod.workDays * 8} | 1 Days = {((1 / timePeriod.workDays) * 100).toFixed(1)}%
                 </li>
                 <li>
                     <strong>Status: </strong>
@@ -301,7 +333,7 @@ export class TimeSheetDetail extends Component {
                 </li>
             </ul>
         );
-    }
+    };
 
     renderSubmitButton = () => {
         return (

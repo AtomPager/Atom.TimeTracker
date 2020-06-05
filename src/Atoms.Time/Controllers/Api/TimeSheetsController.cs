@@ -123,6 +123,7 @@ namespace Atoms.Time.Controllers.Api
 		public async Task<ActionResult<TimeSheet>> SubmitTimeSheet(int id)
 		{
 			var timeSheet = await _context.TimeSheets
+                .Include(t=>t.Entries)
 				.FirstOrDefaultAsync(t => t.Person.UserName == this.GetUserName() && t.Id == id);
 
 			if (timeSheet == null)
@@ -130,6 +131,10 @@ namespace Atoms.Time.Controllers.Api
 
 			if (timeSheet.SubmittedDateTime.HasValue)
 				return BadRequest("Time Sheet has already been submitted.");
+
+            if (timeSheet.Entries.Any(e => !e.ProjectId.HasValue))
+                return BadRequest(
+                    "One or more of the entries doesn't have a project, please select a project or remove the line.");
 
 			timeSheet.SubmittedDateTime = DateTimeOffset.Now;
 			await _context.SaveChangesAsync();

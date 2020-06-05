@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Joi from 'joi-browser';
 import { ProjectSelector } from './ProjectSelector';
+import { toast } from 'react-toastify';
 
 export class ProjectEdit extends Component {
     state = {
@@ -69,6 +70,7 @@ export class ProjectEdit extends Component {
         axios
             .post(`api/Projects/${this.state.projectId}`, this.state.project)
             .then((r) => {
+                toast.success('Project Saved');
                 this.props.history.push('/projects');
             })
             .catch((error) => {
@@ -102,7 +104,8 @@ export class ProjectEdit extends Component {
         axios
             .post(`api/Projects/${this.state.projectId}/mergeInto/${this.state.mergeTargetProject.id}`)
             .then((r) => {
-                this.props.history.push('/projects');
+                toast.success('Project Merged');
+                this.props.history.push(`/projects/${this.state.projectId}`);
             })
             .catch((error) => {
                 if (error.response) {

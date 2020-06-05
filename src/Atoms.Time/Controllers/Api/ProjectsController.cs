@@ -55,6 +55,11 @@ namespace Atoms.Time.Controllers.Api
         [HttpPost]
         public async Task<ActionResult<Project>> PostCreateProject([FromBody]ProjectContent content)
         {
+            if (string.IsNullOrEmpty(content.Name))
+                return BadRequest("Project must have a name");
+
+            content.Name = content.Name.Trim();
+
             var project = await _context.Projects.FirstOrDefaultAsync(p => p.Name == content.Name);
             if (project != null)
             {
@@ -100,6 +105,12 @@ namespace Atoms.Time.Controllers.Api
             await _context.Database.ExecuteSqlInterpolatedAsync($"UPDATE [TimeSheetEntries] SET ProjectId = {targetId} where ProjectId = {id}");
 
             _context.Projects.Remove(project);
+            
+            // The project name in the middle here, so we don't get a double space.
+            // String Join will leave a double space if you join two empty or null strings.
+            // If you join a 4th item here, you will need a string replace for double string,
+            // but preferably a regex, in case you end up with more then 2 spaces.
+            targetProject.KeyWords = string.Join(" ", targetProject.KeyWords, project.Name, project.KeyWords).Trim();
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -119,6 +130,7 @@ namespace Atoms.Time.Controllers.Api
             if (!string.IsNullOrWhiteSpace(content.Name)
                 && !content.Name.Equals(project.Name, StringComparison.InvariantCulture))
             {
+                // CONSIDER: catching the SQL Exception on index constraint and then returning conflict
                 if (await _context.Projects.AnyAsync(p => p.Name == content.Name && p.Id != id))
                     return Conflict("Project with this name already exists.");
 
@@ -147,13 +159,13 @@ namespace Atoms.Time.Controllers.Api
 
             if (content.Classification != null)
             {
-                project.Classification = content.Classification;
+                project.Classification = content.Classification.Trim();
                 hasChange = true;
             }
 
             if (content.Group != null)
             {
-                project.Group = content.Group;
+                project.Group = content.Group.Trim();
                 hasChange = true;
             }
 
