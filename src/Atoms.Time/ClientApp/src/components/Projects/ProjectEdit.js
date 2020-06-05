@@ -20,13 +20,21 @@ export class ProjectEdit extends Component {
     };
 
     componentDidMount() {
+        const projectId = Number(this.props.match.params.projectId);
+        this.getData(projectId);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        const projectId = Number(nextProps.match.params.projectId);
+        this.getData(projectId);
+    }
+
+    getData = (projectId) => {
         const { error } = Joi.validate(this.props.match.params, this.schema);
         if (error) {
             this.setState({ errorMsg: 'Invalid ID', loading: false });
             return;
         }
-
-        const projectId = Number(this.props.match.params.projectId);
 
         this.setState({ projectId });
         axios
@@ -57,7 +65,7 @@ export class ProjectEdit extends Component {
                 }
                 console.log(error.config);
             });
-    }
+    };
 
     onSubmit = (e) => {
         e.preventDefault();
@@ -105,7 +113,7 @@ export class ProjectEdit extends Component {
             .post(`api/Projects/${this.state.projectId}/mergeInto/${this.state.mergeTargetProject.id}`)
             .then((r) => {
                 toast.success('Project Merged');
-                this.props.history.push(`/projects/${this.state.projectId}`);
+                this.props.history.push(`/projects/${this.state.mergeTargetProject.id}`);
             })
             .catch((error) => {
                 if (error.response) {
@@ -317,6 +325,7 @@ export class ProjectEdit extends Component {
 
         return (
             <React.Fragment>
+                {this.props.match.params.projectId}
                 {contents}
                 <hr />
                 <h3>Merge into project</h3>

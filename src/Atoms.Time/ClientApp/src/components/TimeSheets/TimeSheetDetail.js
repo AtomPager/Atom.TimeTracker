@@ -182,7 +182,7 @@ export class TimeSheetDetail extends Component {
             );
         };
 
-        toast.error(toastMsg, { autoClose: 15000 });
+        toast.error(toastMsg, { autoClose: 5000 });
     };
 
     handleEntryChange = (e, entry) => {

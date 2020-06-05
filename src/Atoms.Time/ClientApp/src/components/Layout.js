@@ -11,8 +11,7 @@ export class Layout extends Component {
             <div>
                 <NavMenu userContext={this.props.userContext} />
                 <div className="container-md">{this.props.children}</div>
-                <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss pauseOnHover />
-                <ToastContainer />
+                <ToastContainer position="top-right" autoClose={2000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss pauseOnHover />
                 <footer>
                     <div className="container-md">
                         Powered by{' '}
