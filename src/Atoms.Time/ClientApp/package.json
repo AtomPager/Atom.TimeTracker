@@ -3,9 +3,11 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@nivo/sunburst": "^0.62.0",
+        "@nivo/core": "^0.65.0",
+        "@nivo/sunburst": "^0.65.1",
         "axios": "^0.19.2",
         "bootstrap": "^4.4.1",
+        "formik": "^2.2.5",
         "fs-write-stream-atomic": "^1.0.10",
         "http-proxy": "^1.18.1",
         "joi-browser": "^13.4.0",
@@ -24,7 +26,8 @@
         "react-select": "^3.1.0",
         "react-toastify": "^6.0.5",
         "reactstrap": "^8.4.1",
-        "rimraf": "^2.6.2"
+        "rimraf": "^2.6.2",
+        "yup": "^0.30.0"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^2.31.0",

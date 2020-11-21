@@ -13,7 +13,7 @@ export class PersonsIndex extends Component {
     }
 
     renderTableRow = (person) => {
-        const viewUrl = `/persons/${person.id}`;
+        const viewUrl = `/people/${person.id}`;
         return (
             <tr key={person.id}>
                 <td><Link to={viewUrl}>{person.name}</Link></td>
